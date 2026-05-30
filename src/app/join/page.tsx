@@ -20,11 +20,16 @@ export default function JoinPage() {
     }
 
     addGuest(createGuest(name, answer));
-    router.push("/success");
+    router.push("/confirmation");
   }
 
   return (
-    <ExperienceShell eyebrow="Guest Access" title="Join the Experience" align="left">
+    <ExperienceShell
+      eyebrow="Guest Registration"
+      title="Join Party Network"
+      subtitle="Add your name to tonight's live wall, raffle pool, and prize reveal experience."
+      align="left"
+    >
       <form onSubmit={handleSubmit} className="space-y-5">
         <FormField
           required

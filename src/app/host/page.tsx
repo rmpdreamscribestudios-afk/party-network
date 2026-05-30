@@ -4,9 +4,15 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   createGuest,
+  getPrizeById,
+  PARTY_EVENT_UPDATE,
   PartyGuest,
   readGuests,
-  writeGuests
+  readRaffleState,
+  resetPartyData,
+  RaffleState,
+  writeGuests,
+  writeRaffleState
 } from "@/lib/party-storage";
 import {
   primaryActionClassName,
@@ -16,11 +22,27 @@ import { FormField } from "@/components/form-field";
 
 export default function HostPage() {
   const [guests, setGuests] = useState<PartyGuest[]>([]);
+  const [raffleState, setRaffleState] = useState<RaffleState>({
+    prizeRevealed: false,
+    grandPrizeRevealed: false
+  });
   const [name, setName] = useState("");
   const [answer, setAnswer] = useState("");
 
   useEffect(() => {
-    setGuests(readGuests());
+    const syncState = () => {
+      setGuests(readGuests());
+      setRaffleState(readRaffleState());
+    };
+
+    syncState();
+    window.addEventListener("storage", syncState);
+    window.addEventListener(PARTY_EVENT_UPDATE, syncState);
+
+    return () => {
+      window.removeEventListener("storage", syncState);
+      window.removeEventListener(PARTY_EVENT_UPDATE, syncState);
+    };
   }, []);
 
   const averageLuck = useMemo(() => {
@@ -50,6 +72,15 @@ export default function HostPage() {
     setAnswer("");
   }
 
+  function handleResetEvent() {
+    resetPartyData();
+    setGuests([]);
+    setRaffleState({ prizeRevealed: false, grandPrizeRevealed: false });
+  }
+
+  const currentWinner = guests.find((guest) => guest.id === raffleState.winnerId);
+  const currentPrize = getPrizeById(raffleState.prizeId);
+
   return (
     <main className="min-h-screen px-4 py-6 sm:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
@@ -69,10 +100,13 @@ export default function HostPage() {
             <Link href="/raffle" className={primaryActionClassName}>
               Raffle
             </Link>
+            <Link href="/prize" className={secondaryActionClassName}>
+              Prize Reveal
+            </Link>
           </nav>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-3">
+        <section className="grid gap-4 md:grid-cols-4">
           <div className="rounded-md border border-gold/30 bg-black/45 p-5">
             <p className="text-sm uppercase text-stone-400">Guests</p>
             <p className="mt-2 text-5xl font-black text-gold">{guests.length}</p>
@@ -81,9 +115,25 @@ export default function HostPage() {
             <p className="text-sm uppercase text-stone-400">Average Luck</p>
             <p className="mt-2 text-5xl font-black text-gold">{averageLuck}</p>
           </div>
+          <div className="rounded-md border border-gold/30 bg-black/45 p-5">
+            <p className="text-sm uppercase text-stone-400">Winner</p>
+            <p className="mt-2 text-3xl font-black text-gold">
+              {currentWinner?.name ?? "Pending"}
+            </p>
+          </div>
+          <div className="rounded-md border border-gold/30 bg-black/45 p-5">
+            <p className="text-sm uppercase text-stone-400">Prize Status</p>
+            <p className="mt-2 text-3xl font-black text-gold">
+              {raffleState.grandPrizeRevealed
+                ? "8KG Rice"
+                : raffleState.prizeRevealed
+                  ? currentPrize.reveal
+                  : "Hidden"}
+            </p>
+          </div>
           <form
             onSubmit={handleAddGuest}
-            className="rounded-md border border-gold/30 bg-black/45 p-5 md:row-span-2"
+            className="rounded-md border border-gold/30 bg-black/45 p-5 md:col-span-1 md:row-span-2"
           >
             <h2 className="text-2xl font-bold text-champagne">Add Guest</h2>
             <div className="mt-5 space-y-4">
@@ -106,15 +156,28 @@ export default function HostPage() {
               <button
                 type="button"
                 className={secondaryActionClassName}
-                onClick={() => updateGuests([])}
+                onClick={() => {
+                  updateGuests([]);
+                  writeRaffleState({
+                    prizeRevealed: false,
+                    grandPrizeRevealed: false
+                  });
+                }}
                 disabled={!guests.length}
               >
                 Clear Guest List
               </button>
+              <button
+                type="button"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-md border border-red-400/50 px-6 py-3 text-center text-base font-bold text-red-100 transition hover:bg-red-500/15 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2 focus:ring-offset-obsidian"
+                onClick={handleResetEvent}
+              >
+                Reset Event
+              </button>
             </div>
           </form>
 
-          <div className="rounded-md border border-gold/30 bg-black/45 p-5 md:col-span-2">
+          <div className="rounded-md border border-gold/30 bg-black/45 p-5 md:col-span-3">
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-2xl font-bold text-champagne">
                 Registered Guests

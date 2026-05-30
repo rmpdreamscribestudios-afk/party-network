@@ -2,19 +2,23 @@
 
 Party Network is a production-ready MVP for a mobile-first interactive event experience built with Next.js 15, TypeScript, Tailwind CSS, and the App Router.
 
-Guests scan a QR code, join the event, receive a luck score, and enter a local live raffle experience. The MVP stores guests in `localStorage` only. It does not use Supabase or authentication yet.
+Guests scan a QR code, join the event, receive a luck score, and enter a local live raffle experience. The MVP stores event state in `localStorage` only. It does not use Supabase or authentication yet.
 
 ## Routes
 
 - `/` - guest landing page
 - `/join` - guest registration
-- `/success` - access granted and luck score
+- `/confirmation` - registration success and luck score
+- `/success` - compatibility redirect-style screen for older links
 - `/host` - host dashboard
 - `/live` - projector-friendly live display
 - `/raffle` - dramatic raffle draw
 - `/prize` - regular prize reveal
 - `/grand-prize` - final grand prize reveal
 - `/message` - host message screen
+
+Guests, raffle winner, selected prize, and reveal status persist in browser
+`localStorage` for the MVP.
 
 ## Local Development
 

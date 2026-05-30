@@ -9,26 +9,43 @@ export type PartyGuest = {
 };
 
 export type Prize = {
+  id: string;
   setup: string;
   reveal: string;
   isGrand?: boolean;
 };
 
+export type RaffleState = {
+  winnerId?: string;
+  prizeId?: string;
+  prizeRevealed: boolean;
+  grandPrizeRevealed: boolean;
+  updatedAt?: string;
+};
+
 export const PARTY_GUESTS_KEY = "party-network-guests";
 export const PARTY_CURRENT_GUEST_KEY = "party-network-current-guest-id";
+export const PARTY_RAFFLE_STATE_KEY = "party-network-raffle-state";
+export const PARTY_EVENT_UPDATE = "party-network-state-updated";
 
 export const defaultPrizes: Prize[] = [
-  { setup: "Brand New PC", reveal: "Pancit Canton" },
-  { setup: "Trip to Korea", reveal: "Chopsticks" },
-  { setup: "Luxury Vehicle", reveal: "Toy Car" },
-  { setup: "iPhone", reveal: "Apple" },
-  { setup: "Cash Prize", reveal: "Play Money" },
+  { id: "pc", setup: "Brand New PC", reveal: "Pancit Canton" },
+  { id: "korea", setup: "Trip to Korea", reveal: "Chopsticks" },
+  { id: "vehicle", setup: "Luxury Vehicle", reveal: "Toy Car" },
+  { id: "iphone", setup: "iPhone", reveal: "Apple" },
+  { id: "cash", setup: "Cash Prize", reveal: "Play Money" },
   {
+    id: "grand-rice",
     setup: "Grand Prize: Pangkabuhayan Showcase",
     reveal: "8KG Rice",
     isGrand: true
   }
 ];
+
+export const initialRaffleState: RaffleState = {
+  prizeRevealed: false,
+  grandPrizeRevealed: false
+};
 
 export function createGuest(name: string, answer?: string): PartyGuest {
   return {
@@ -61,9 +78,13 @@ export function readGuests(): PartyGuest[] {
   }
 }
 
+export function emitPartyUpdate() {
+  window.dispatchEvent(new Event(PARTY_EVENT_UPDATE));
+}
+
 export function writeGuests(guests: PartyGuest[]) {
   window.localStorage.setItem(PARTY_GUESTS_KEY, JSON.stringify(guests));
-  window.dispatchEvent(new Event("party-network-guests-updated"));
+  emitPartyUpdate();
 }
 
 export function addGuest(guest: PartyGuest) {
@@ -75,6 +96,49 @@ export function addGuest(guest: PartyGuest) {
 export function findCurrentGuest(): PartyGuest | undefined {
   const currentGuestId = window.localStorage.getItem(PARTY_CURRENT_GUEST_KEY);
   return readGuests().find((guest) => guest.id === currentGuestId);
+}
+
+export function readRaffleState(): RaffleState {
+  if (typeof window === "undefined") {
+    return initialRaffleState;
+  }
+
+  try {
+    const rawState = window.localStorage.getItem(PARTY_RAFFLE_STATE_KEY);
+    if (!rawState) {
+      return initialRaffleState;
+    }
+
+    const parsedState = JSON.parse(rawState) as Partial<RaffleState>;
+    return {
+      ...initialRaffleState,
+      ...parsedState
+    };
+  } catch {
+    return initialRaffleState;
+  }
+}
+
+export function writeRaffleState(state: RaffleState) {
+  window.localStorage.setItem(
+    PARTY_RAFFLE_STATE_KEY,
+    JSON.stringify({ ...state, updatedAt: new Date().toISOString() })
+  );
+  emitPartyUpdate();
+}
+
+export function resetPartyData() {
+  window.localStorage.removeItem(PARTY_GUESTS_KEY);
+  window.localStorage.removeItem(PARTY_CURRENT_GUEST_KEY);
+  window.localStorage.removeItem(PARTY_RAFFLE_STATE_KEY);
+  emitPartyUpdate();
+}
+
+export function getPrizeById(prizeId?: string): Prize {
+  return (
+    defaultPrizes.find((prize) => prize.id === prizeId) ??
+    defaultPrizes.find((prize) => !prize.isGrand)!
+  );
 }
 
 export function getLuckMessage(score: number): string {

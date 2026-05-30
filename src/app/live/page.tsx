@@ -2,25 +2,49 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { PartyGuest, readGuests } from "@/lib/party-storage";
+import {
+  getPrizeById,
+  PARTY_EVENT_UPDATE,
+  PartyGuest,
+  readGuests,
+  readRaffleState
+} from "@/lib/party-storage";
 
 export default function LivePage() {
   const [guests, setGuests] = useState<PartyGuest[]>([]);
+  const [winnerName, setWinnerName] = useState("Pending");
+  const [prizeName, setPrizeName] = useState("Awaiting reveal");
 
   useEffect(() => {
-    const syncGuests = () => setGuests(readGuests());
+    const syncGuests = () => {
+      const nextGuests = readGuests();
+      const state = readRaffleState();
+      setGuests(nextGuests);
+      setWinnerName(
+        nextGuests.find((guest) => guest.id === state.winnerId)?.name ?? "Pending"
+      );
+      setPrizeName(
+        state.grandPrizeRevealed
+          ? "8KG Rice"
+          : state.prizeRevealed
+            ? getPrizeById(state.prizeId).reveal
+            : "Awaiting reveal"
+      );
+    };
 
     syncGuests();
     window.addEventListener("storage", syncGuests);
-    window.addEventListener("party-network-guests-updated", syncGuests);
+    window.addEventListener(PARTY_EVENT_UPDATE, syncGuests);
 
     return () => {
       window.removeEventListener("storage", syncGuests);
-      window.removeEventListener("party-network-guests-updated", syncGuests);
+      window.removeEventListener(PARTY_EVENT_UPDATE, syncGuests);
     };
   }, []);
 
-  const displayGuests = guests.length ? guests : [{ id: "empty", name: "Join the Network", luckScore: 100, createdAt: "" }];
+  const displayGuests = guests.length
+    ? guests
+    : [{ id: "empty", name: "Join the Network", luckScore: 100, createdAt: "" }];
 
   return (
     <main className="relative flex min-h-screen overflow-hidden px-6 py-8">
@@ -58,11 +82,25 @@ export default function LivePage() {
         </div>
 
         <footer className="grid gap-4 border-t border-gold/20 pt-6 md:grid-cols-[1fr_auto] md:items-end">
-          <div>
-            <p className="text-3xl font-black text-gold md:text-6xl">
-              {guests.length.toString().padStart(2, "0")}
-            </p>
-            <p className="text-xl text-stone-300">Guests connected</p>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <p className="text-3xl font-black text-gold md:text-6xl">
+                {guests.length.toString().padStart(2, "0")}
+              </p>
+              <p className="text-xl text-stone-300">Guests connected</p>
+            </div>
+            <div>
+              <p className="break-words text-3xl font-black text-gold md:text-5xl">
+                {winnerName}
+              </p>
+              <p className="text-xl text-stone-300">Current winner</p>
+            </div>
+            <div>
+              <p className="break-words text-3xl font-black text-gold md:text-5xl">
+                {prizeName}
+              </p>
+              <p className="text-xl text-stone-300">Prize board</p>
+            </div>
           </div>
           <p className="countdown-pulse text-4xl font-black text-champagne md:text-7xl">
             DRAW SOON

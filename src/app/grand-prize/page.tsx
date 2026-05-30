@@ -1,14 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   primaryActionClassName,
   secondaryActionClassName
 } from "@/components/button-styles";
+import {
+  PARTY_EVENT_UPDATE,
+  readRaffleState,
+  writeRaffleState
+} from "@/lib/party-storage";
 
 export default function GrandPrizePage() {
   const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    const syncState = () => setRevealed(readRaffleState().grandPrizeRevealed);
+
+    syncState();
+    window.addEventListener("storage", syncState);
+    window.addEventListener(PARTY_EVENT_UPDATE, syncState);
+
+    return () => {
+      window.removeEventListener("storage", syncState);
+      window.removeEventListener(PARTY_EVENT_UPDATE, syncState);
+    };
+  }, []);
+
+  function revealGrandPrize() {
+    setRevealed(true);
+    writeRaffleState({
+      ...readRaffleState(),
+      prizeId: "grand-rice",
+      prizeRevealed: true,
+      grandPrizeRevealed: true
+    });
+  }
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-5 py-8 text-center">
@@ -22,11 +50,17 @@ export default function GrandPrizePage() {
           <p className="text-6xl font-black text-gold md:text-9xl">
             {revealed ? "8KG RICE" : "????"}
           </p>
+          {revealed ? (
+            <p className="mx-auto mt-5 max-w-2xl text-xl leading-8 text-stone-100">
+              The premium survival bundle has arrived. Heavy, practical, and
+              completely unforgettable.
+            </p>
+          ) : null}
         </div>
         <div className="mx-auto mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
           <button
             type="button"
-            onClick={() => setRevealed(true)}
+            onClick={revealGrandPrize}
             className={primaryActionClassName}
           >
             Final Reveal

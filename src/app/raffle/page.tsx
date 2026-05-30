@@ -6,15 +6,44 @@ import {
   primaryActionClassName,
   secondaryActionClassName
 } from "@/components/button-styles";
-import { PartyGuest, readGuests } from "@/lib/party-storage";
+import {
+  getPrizeById,
+  PARTY_EVENT_UPDATE,
+  PartyGuest,
+  readGuests,
+  readRaffleState,
+  writeRaffleState
+} from "@/lib/party-storage";
 
 export default function RafflePage() {
   const [guests, setGuests] = useState<PartyGuest[]>([]);
   const [winner, setWinner] = useState<PartyGuest>();
   const [isDrawing, setIsDrawing] = useState(false);
+  const [prizeName, setPrizeName] = useState("Hidden");
 
   useEffect(() => {
-    setGuests(readGuests());
+    const syncState = () => {
+      const nextGuests = readGuests();
+      const nextState = readRaffleState();
+      setGuests(nextGuests);
+      setWinner(nextGuests.find((guest) => guest.id === nextState.winnerId));
+      setPrizeName(
+        nextState.grandPrizeRevealed
+          ? "8KG Rice"
+          : nextState.prizeRevealed
+            ? getPrizeById(nextState.prizeId).reveal
+            : "Hidden"
+      );
+    };
+
+    syncState();
+    window.addEventListener("storage", syncState);
+    window.addEventListener(PARTY_EVENT_UPDATE, syncState);
+
+    return () => {
+      window.removeEventListener("storage", syncState);
+      window.removeEventListener(PARTY_EVENT_UPDATE, syncState);
+    };
   }, []);
 
   function startDraw() {
@@ -28,6 +57,10 @@ export default function RafflePage() {
     window.setTimeout(() => {
       const nextWinner = guests[Math.floor(Math.random() * guests.length)];
       setWinner(nextWinner);
+      writeRaffleState({
+        ...readRaffleState(),
+        winnerId: nextWinner.id
+      });
       setIsDrawing(false);
     }, 2200);
   }
@@ -40,6 +73,24 @@ export default function RafflePage() {
         <h1 className="mt-3 text-5xl font-black text-champagne sm:text-7xl md:text-8xl">
           THE NETWORK HAS CHOSEN
         </h1>
+        <div className="mx-auto mt-6 grid max-w-3xl gap-3 text-left sm:grid-cols-3">
+          <div className="rounded-md border border-gold/25 bg-black/45 p-4">
+            <p className="text-xs uppercase text-stone-400">Entries</p>
+            <p className="mt-1 text-3xl font-black text-gold">{guests.length}</p>
+          </div>
+          <div className="rounded-md border border-gold/25 bg-black/45 p-4">
+            <p className="text-xs uppercase text-stone-400">Last Winner</p>
+            <p className="mt-1 text-2xl font-black text-champagne">
+              {winner?.name ?? "Pending"}
+            </p>
+          </div>
+          <div className="rounded-md border border-gold/25 bg-black/45 p-4">
+            <p className="text-xs uppercase text-stone-400">Prize</p>
+            <p className="mt-1 text-2xl font-black text-champagne">
+              {prizeName}
+            </p>
+          </div>
+        </div>
 
         <div className="mx-auto mt-10 flex min-h-72 max-w-3xl items-center justify-center rounded-md border border-gold/40 bg-black/55 p-6 shadow-gold backdrop-blur">
           {isDrawing ? (

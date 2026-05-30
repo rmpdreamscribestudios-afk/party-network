@@ -1,12 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   primaryActionClassName,
   secondaryActionClassName
 } from "@/components/button-styles";
-import { defaultPrizes, Prize } from "@/lib/party-storage";
+import {
+  defaultPrizes,
+  getPrizeById,
+  PARTY_EVENT_UPDATE,
+  Prize,
+  readRaffleState,
+  writeRaffleState
+} from "@/lib/party-storage";
 
 export default function PrizePage() {
   const regularPrizes = useMemo(
@@ -16,14 +23,50 @@ export default function PrizePage() {
   const [prize, setPrize] = useState<Prize>(regularPrizes[0]);
   const [revealed, setRevealed] = useState(false);
 
+  useEffect(() => {
+    const syncState = () => {
+      const state = readRaffleState();
+      const storedPrize = getPrizeById(state.prizeId);
+      setPrize(storedPrize.isGrand ? regularPrizes[0] : storedPrize);
+      setRevealed(state.prizeRevealed);
+    };
+
+    syncState();
+    window.addEventListener("storage", syncState);
+    window.addEventListener(PARTY_EVENT_UPDATE, syncState);
+
+    return () => {
+      window.removeEventListener("storage", syncState);
+      window.removeEventListener(PARTY_EVENT_UPDATE, syncState);
+    };
+  }, [regularPrizes]);
+
   function choosePrize() {
-    setPrize(regularPrizes[Math.floor(Math.random() * regularPrizes.length)]);
+    const nextPrize = regularPrizes[Math.floor(Math.random() * regularPrizes.length)];
+    setPrize(nextPrize);
     setRevealed(false);
+    writeRaffleState({
+      ...readRaffleState(),
+      prizeId: nextPrize.id,
+      prizeRevealed: false,
+      grandPrizeRevealed: false
+    });
+  }
+
+  function revealPrize() {
+    setRevealed(true);
+    writeRaffleState({
+      ...readRaffleState(),
+      prizeId: prize.id,
+      prizeRevealed: true,
+      grandPrizeRevealed: false
+    });
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-5 py-8 text-center">
-      <section className="w-full max-w-4xl">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-5 py-8 text-center">
+      <div className="premium-orbit opacity-40" />
+      <section className="relative z-10 w-full max-w-4xl">
         <p className="text-lg font-bold uppercase text-gold">Prize Reveal</p>
         <h1 className="mt-4 text-5xl font-black text-champagne md:text-8xl">
           {prize.setup}
@@ -45,7 +88,7 @@ export default function PrizePage() {
         <div className="mx-auto mt-8 grid max-w-2xl gap-3 sm:grid-cols-3">
           <button
             type="button"
-            onClick={() => setRevealed(true)}
+            onClick={revealPrize}
             className={primaryActionClassName}
           >
             Reveal Prize
