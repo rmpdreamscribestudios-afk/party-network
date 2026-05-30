@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { primaryActionClassName } from "@/components/button-styles";
 import { ExperienceShell } from "@/components/experience-shell";
@@ -29,11 +29,32 @@ function getRegistrationErrorMessage(error: unknown) {
 
 export default function JoinPage() {
   const router = useRouter();
-  const { settings } = useEventSettings();
+  const {
+    eventSettings,
+    hasEventSettings,
+    isLoaded: areEventSettingsLoaded,
+    error: eventSettingsError
+  } = useEventSettings();
   const [name, setName] = useState("");
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const title = areEventSettingsLoaded ? eventSettings.title : "";
+  const subtitle = areEventSettingsLoaded ? eventSettings.subtitle : "";
+
+  useEffect(() => {
+    console.log("[join] event_settings received", {
+      eventSettings,
+      hasEventSettings,
+      isLoaded: areEventSettingsLoaded,
+      error: eventSettingsError
+    });
+  }, [
+    areEventSettingsLoaded,
+    eventSettings,
+    eventSettingsError,
+    hasEventSettings
+  ]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -57,8 +78,8 @@ export default function JoinPage() {
   return (
     <ExperienceShell
       eyebrow="Guest Registration"
-      title={settings.title}
-      subtitle={settings.subtitle}
+      title={title}
+      subtitle={subtitle}
       align="left"
     >
       <form onSubmit={handleSubmit} className="space-y-5">

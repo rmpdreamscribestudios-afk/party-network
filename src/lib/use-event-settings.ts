@@ -4,21 +4,28 @@ import { useCallback, useEffect, useState } from "react";
 import {
   defaultEventSettings,
   EventSettings,
-  fetchEventSettings,
+  fetchEventSettingsLoadResult,
   subscribeToEventSettingsChanges
 } from "@/lib/supabase-event-settings";
 import { PARTY_EVENT_UPDATE } from "@/lib/party-storage";
 
 export function useEventSettings() {
   const [settings, setSettings] = useState<EventSettings>(defaultEventSettings);
+  const [hasEventSettings, setHasEventSettings] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState("");
 
   const loadSettings = useCallback(async () => {
     try {
-      setSettings(await fetchEventSettings());
+      const result = await fetchEventSettingsLoadResult();
+      setSettings(result.settings);
+      setHasEventSettings(result.hasEventSettings);
+      setIsLoaded(true);
       setError("");
     } catch {
       setSettings(defaultEventSettings);
+      setHasEventSettings(false);
+      setIsLoaded(true);
       setError("Could not load event settings.");
     }
   }, []);
@@ -36,5 +43,12 @@ export function useEventSettings() {
     };
   }, [loadSettings]);
 
-  return { settings, error, reloadSettings: loadSettings };
+  return {
+    settings,
+    eventSettings: settings,
+    hasEventSettings,
+    isLoaded,
+    error,
+    reloadSettings: loadSettings
+  };
 }

@@ -12,9 +12,12 @@ export type EventSettings = {
 
 type EventSettingsRow = {
   id: string;
-  event_title: string;
-  event_subtitle: string | null;
-  event_date: string | null;
+  event_title?: string | null;
+  event_subtitle?: string | null;
+  event_date?: string | null;
+  title?: string | null;
+  subtitle?: string | null;
+  date?: string | null;
 };
 
 type EventSettingsUpsert = {
@@ -22,6 +25,19 @@ type EventSettingsUpsert = {
   event_title: string;
   event_subtitle: string | null;
   event_date: string | null;
+};
+
+type LegacyEventSettingsUpsert = {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  date: string | null;
+};
+
+export type EventSettingsLoadResult = {
+  settings: EventSettings;
+  hasEventSettings: boolean;
+  source: "default" | "local" | "supabase";
 };
 
 export const EVENT_SETTINGS_ID = "current";
@@ -33,34 +49,60 @@ export const defaultEventSettings: EventSettings = {
     "Add your name to the live wall, raffle pool, and prize reveal experience."
 };
 
+function getSettingsValue(...values: Array<string | null | undefined>) {
+  for (const value of values) {
+    if (typeof value === "string") {
+      return value.trim();
+    }
+  }
+
+  return "";
+}
+
 function mapEventSettings(row: EventSettingsRow): EventSettings {
   return {
-    title: row.event_title.trim() || defaultEventSettings.title,
-    subtitle: row.event_subtitle?.trim() || defaultEventSettings.subtitle,
-    date: row.event_date ?? undefined
+    title: getSettingsValue(row.event_title, row.title),
+    subtitle: getSettingsValue(row.event_subtitle, row.subtitle),
+    date: row.event_date ?? row.date ?? undefined
   };
 }
 
-function readLocalEventSettings(): EventSettings {
+function readLocalEventSettings(): EventSettingsLoadResult {
   if (typeof window === "undefined") {
-    return defaultEventSettings;
+    return {
+      settings: defaultEventSettings,
+      hasEventSettings: false,
+      source: "default"
+    };
   }
 
   try {
     const rawSettings = window.localStorage.getItem(PARTY_EVENT_SETTINGS_KEY);
     if (!rawSettings) {
-      return defaultEventSettings;
+      return {
+        settings: defaultEventSettings,
+        hasEventSettings: false,
+        source: "default"
+      };
     }
 
     const settings = JSON.parse(rawSettings) as Partial<EventSettings>;
 
     return {
-      title: settings.title?.trim() || defaultEventSettings.title,
-      subtitle: settings.subtitle?.trim() || defaultEventSettings.subtitle,
-      date: settings.date || undefined
+      settings: {
+        title: settings.title?.trim() ?? "",
+        subtitle: settings.subtitle?.trim() ?? "",
+        date: settings.date || undefined
+      },
+      hasEventSettings: true,
+      source: "local"
     };
   } catch {
-    return defaultEventSettings;
+    return {
+      settings: defaultEventSettings,
+      hasEventSettings: false,
+      source: "default"
+    };
   }
 }
 
@@ -68,8 +110,8 @@ function writeLocalEventSettings(settings: EventSettings) {
   window.localStorage.setItem(
     PARTY_EVENT_SETTINGS_KEY,
     JSON.stringify({
-      title: settings.title.trim() || defaultEventSettings.title,
-      subtitle: settings.subtitle.trim() || defaultEventSettings.subtitle,
+      title: settings.title.trim(),
+      subtitle: settings.subtitle.trim(),
       date: settings.date || undefined
     })
   );
@@ -77,13 +119,17 @@ function writeLocalEventSettings(settings: EventSettings) {
 }
 
 export async function fetchEventSettings(): Promise<EventSettings> {
+  return (await fetchEventSettingsLoadResult()).settings;
+}
+
+export async function fetchEventSettingsLoadResult(): Promise<EventSettingsLoadResult> {
   if (!supabase) {
     return readLocalEventSettings();
   }
 
   const { data, error } = await supabase
     .from("event_settings")
-    .select("id, event_title, event_subtitle, event_date")
+    .select("*")
     .eq("id", EVENT_SETTINGS_ID)
     .maybeSingle();
 
@@ -91,7 +137,17 @@ export async function fetchEventSettings(): Promise<EventSettings> {
     throw error;
   }
 
-  return data ? mapEventSettings(data) : defaultEventSettings;
+  return data
+    ? {
+        settings: mapEventSettings(data),
+        hasEventSettings: true,
+        source: "supabase"
+      }
+    : {
+        settings: defaultEventSettings,
+        hasEventSettings: false,
+        source: "default"
+      };
 }
 
 export async function saveEventSettings(settings: EventSettings) {
@@ -102,16 +158,40 @@ export async function saveEventSettings(settings: EventSettings) {
 
   const payload: EventSettingsUpsert = {
     id: EVENT_SETTINGS_ID,
-    event_title: settings.title.trim() || defaultEventSettings.title,
-    event_subtitle: settings.subtitle.trim() || defaultEventSettings.subtitle,
+    event_title: settings.title.trim(),
+    event_subtitle: settings.subtitle.trim() || null,
     event_date: settings.date || null
   };
 
-  const { error } = await supabase.from("event_settings").upsert(payload);
+  const { error } = await supabase
+    .from("event_settings")
+    .upsert(payload, { onConflict: "id" })
+    .select("*")
+    .single();
 
-  if (error) {
-    throw error;
+  if (!error) {
+    emitPartyUpdate();
+    return;
   }
+
+  const legacyPayload: LegacyEventSettingsUpsert = {
+    id: EVENT_SETTINGS_ID,
+    title: settings.title.trim(),
+    subtitle: settings.subtitle.trim() || null,
+    date: settings.date || null
+  };
+
+  const { error: legacyError } = await supabase
+    .from("event_settings")
+    .upsert(legacyPayload, { onConflict: "id" })
+    .select("*")
+    .single();
+
+  if (legacyError) {
+    throw legacyError;
+  }
+
+  emitPartyUpdate();
 }
 
 export function subscribeToEventSettingsChanges(
