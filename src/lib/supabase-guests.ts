@@ -13,14 +13,14 @@ import type { PartyGuest } from "@/lib/party-storage";
 
 type GuestRow = {
   id: string;
-  guest_name: string;
+  name: string;
   funny_answer: string | null;
   luck_score: number;
   created_at: string;
 };
 
 type GuestInsert = {
-  guest_name: string;
+  name: string;
   funny_answer?: string | null;
   luck_score: number;
 };
@@ -37,7 +37,7 @@ export const supabase = isSupabaseConfigured
 function mapGuest(row: GuestRow): PartyGuest {
   return {
     id: row.id,
-    name: row.guest_name,
+    name: row.name,
     answer: row.funny_answer ?? undefined,
     luckScore: row.luck_score,
     createdAt: row.created_at
@@ -52,7 +52,7 @@ export async function fetchGuests(): Promise<PartyGuest[]> {
   try {
     const { data, error } = await supabase
       .from("guests")
-      .select("id, guest_name, funny_answer, luck_score, created_at")
+      .select("id, name, funny_answer, luck_score, created_at")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -73,7 +73,7 @@ export async function fetchGuestById(id: string): Promise<PartyGuest | undefined
   try {
     const { data, error } = await supabase
       .from("guests")
-      .select("id, guest_name, funny_answer, luck_score, created_at")
+      .select("id, name, funny_answer, luck_score, created_at")
       .eq("id", id)
       .maybeSingle();
 
@@ -93,7 +93,7 @@ export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
   }
 
   const payload: GuestInsert = {
-    guest_name: guest.name,
+    name: guest.name,
     funny_answer: guest.answer ?? null,
     luck_score: guest.luckScore
   };
@@ -101,7 +101,7 @@ export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
   const { data, error } = await supabase
     .from("guests")
     .insert(payload)
-    .select("id, guest_name, funny_answer, luck_score, created_at")
+    .select("id, name, funny_answer, luck_score, created_at")
     .single();
 
   if (error) {

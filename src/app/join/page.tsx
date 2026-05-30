@@ -12,28 +12,19 @@ import { useEventSettings } from "@/lib/use-event-settings";
 function getRegistrationErrorMessage(error: unknown) {
   if (error && typeof error === "object") {
     const supabaseError = error as {
-      code?: string;
-      details?: string;
-      hint?: string;
       message?: string;
     };
-    const errorDetails = [
-      supabaseError.message,
-      supabaseError.details,
-      supabaseError.hint,
-      supabaseError.code
-    ].filter(Boolean);
 
-    if (errorDetails.length) {
-      return `Supabase insert error: ${errorDetails.join(" | ")}`;
+    if (supabaseError.message) {
+      return supabaseError.message;
     }
   }
 
   if (error instanceof Error) {
-    return `Supabase insert error: ${error.message}`;
+    return error.message;
   }
 
-  return "Supabase insert error: Unknown error.";
+  return "Unknown error.";
 }
 
 export default function JoinPage() {
