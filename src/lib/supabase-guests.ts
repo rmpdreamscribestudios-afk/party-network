@@ -49,16 +49,20 @@ export async function fetchGuests(): Promise<PartyGuest[]> {
     return readLocalGuests();
   }
 
-  const { data, error } = await supabase
-    .from("guests")
-    .select("id, guest_name, funny_answer, luck_score, created_at")
-    .order("created_at", { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from("guests")
+      .select("id, guest_name, funny_answer, luck_score, created_at")
+      .order("created_at", { ascending: false });
 
-  if (error) {
-    throw error;
+    if (error) {
+      return readLocalGuests();
+    }
+
+    return (data ?? []).map(mapGuest);
+  } catch {
+    return readLocalGuests();
   }
-
-  return (data ?? []).map(mapGuest);
 }
 
 export async function fetchGuestById(id: string): Promise<PartyGuest | undefined> {
@@ -66,17 +70,21 @@ export async function fetchGuestById(id: string): Promise<PartyGuest | undefined
     return readLocalGuestById(id);
   }
 
-  const { data, error } = await supabase
-    .from("guests")
-    .select("id, guest_name, funny_answer, luck_score, created_at")
-    .eq("id", id)
-    .maybeSingle();
+  try {
+    const { data, error } = await supabase
+      .from("guests")
+      .select("id, guest_name, funny_answer, luck_score, created_at")
+      .eq("id", id)
+      .maybeSingle();
 
-  if (error) {
-    throw error;
+    if (error) {
+      return readLocalGuestById(id);
+    }
+
+    return data ? mapGuest(data) : readLocalGuestById(id);
+  } catch {
+    return readLocalGuestById(id);
   }
-
-  return data ? mapGuest(data) : undefined;
 }
 
 export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {

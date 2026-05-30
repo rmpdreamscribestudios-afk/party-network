@@ -9,6 +9,33 @@ import { createGuest } from "@/lib/party-storage";
 import { insertGuest } from "@/lib/supabase-guests";
 import { useEventSettings } from "@/lib/use-event-settings";
 
+function getRegistrationErrorMessage(error: unknown) {
+  if (error && typeof error === "object") {
+    const supabaseError = error as {
+      code?: string;
+      details?: string;
+      hint?: string;
+      message?: string;
+    };
+    const errorDetails = [
+      supabaseError.message,
+      supabaseError.details,
+      supabaseError.hint,
+      supabaseError.code
+    ].filter(Boolean);
+
+    if (errorDetails.length) {
+      return `Supabase insert error: ${errorDetails.join(" | ")}`;
+    }
+  }
+
+  if (error instanceof Error) {
+    return `Supabase insert error: ${error.message}`;
+  }
+
+  return "Supabase insert error: Unknown error.";
+}
+
 export default function JoinPage() {
   const router = useRouter();
   const { settings } = useEventSettings();
@@ -30,8 +57,8 @@ export default function JoinPage() {
     try {
       const guest = await insertGuest(createGuest(name, answer));
       router.push(`/confirmation?id=${encodeURIComponent(guest.id)}`);
-    } catch {
-      setError("Could not register guest. Please try again.");
+    } catch (error) {
+      setError(getRegistrationErrorMessage(error));
       setIsSubmitting(false);
     }
   }
