@@ -252,7 +252,7 @@ export default function HostPage() {
                 label="Event Title"
                 value={eventTitle}
                 onChange={(event) => setEventTitle(event.target.value)}
-                placeholder="Welcome to Aliyah Rose's 1st Birthday"
+                placeholder="Party Network"
               />
               <FormField
                 label="Event Subtitle"

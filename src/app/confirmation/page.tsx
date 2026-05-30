@@ -46,7 +46,7 @@ export default function ConfirmationPage() {
     <ExperienceShell
       eyebrow="Registration Confirmed"
       title={settings.title}
-      subtitle="You're in. Your name is saved to the shared event list and ready for the live event screens."
+      subtitle={settings.subtitle}
     >
       <div className="rounded-md border border-gold/40 bg-black/50 p-6 shadow-gold backdrop-blur">
         <p className="text-lg font-semibold text-champagne">

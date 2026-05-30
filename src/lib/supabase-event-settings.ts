@@ -35,8 +35,8 @@ export const defaultEventSettings: EventSettings = {
 
 function mapEventSettings(row: EventSettingsRow): EventSettings {
   return {
-    title: row.event_title,
-    subtitle: row.event_subtitle ?? "",
+    title: row.event_title.trim() || defaultEventSettings.title,
+    subtitle: row.event_subtitle?.trim() || defaultEventSettings.subtitle,
     date: row.event_date ?? undefined
   };
 }
@@ -66,7 +66,7 @@ function writeLocalEventSettings(settings: EventSettings) {
     PARTY_EVENT_SETTINGS_KEY,
     JSON.stringify({
       title: settings.title.trim() || defaultEventSettings.title,
-      subtitle: settings.subtitle.trim(),
+      subtitle: settings.subtitle.trim() || defaultEventSettings.subtitle,
       date: settings.date || undefined
     })
   );
@@ -100,7 +100,7 @@ export async function saveEventSettings(settings: EventSettings) {
   const payload: EventSettingsUpsert = {
     id: EVENT_SETTINGS_ID,
     event_title: settings.title.trim() || defaultEventSettings.title,
-    event_subtitle: settings.subtitle.trim() || null,
+    event_subtitle: settings.subtitle.trim() || defaultEventSettings.subtitle,
     event_date: settings.date || null
   };
 
