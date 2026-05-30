@@ -58,7 +58,7 @@ export default function JoinPage() {
     <ExperienceShell
       eyebrow="Guest Registration"
       title={settings.title}
-      subtitle="Add your name to the live wall, raffle pool, and prize reveal experience."
+      subtitle={settings.subtitle}
       align="left"
     >
       <form onSubmit={handleSubmit} className="space-y-5">

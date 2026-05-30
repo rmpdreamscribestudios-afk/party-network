@@ -76,7 +76,7 @@ insert into public.event_settings (
 ) values (
   'current',
   'Party Network',
-  'A black and gold registration, live wall, raffle draw, and prize reveal experience for one unforgettable party.',
+  'Add your name to the live wall, raffle pool, and prize reveal experience.',
   null
 );
 ```

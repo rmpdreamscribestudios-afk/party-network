@@ -30,7 +30,7 @@ export const PARTY_EVENT_SETTINGS_KEY = "party-network-event-settings";
 export const defaultEventSettings: EventSettings = {
   title: "Party Network",
   subtitle:
-    "A black and gold registration, live wall, raffle draw, and prize reveal experience for one unforgettable party."
+    "Add your name to the live wall, raffle pool, and prize reveal experience."
 };
 
 function mapEventSettings(row: EventSettingsRow): EventSettings {
