@@ -52,9 +52,12 @@ function readLocalEventSettings(): EventSettings {
       return defaultEventSettings;
     }
 
+    const settings = JSON.parse(rawSettings) as Partial<EventSettings>;
+
     return {
-      ...defaultEventSettings,
-      ...(JSON.parse(rawSettings) as Partial<EventSettings>)
+      title: settings.title?.trim() || defaultEventSettings.title,
+      subtitle: settings.subtitle?.trim() || defaultEventSettings.subtitle,
+      date: settings.date || undefined
     };
   } catch {
     return defaultEventSettings;
