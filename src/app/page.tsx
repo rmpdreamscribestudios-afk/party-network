@@ -1,16 +1,21 @@
+"use client";
+
 import Link from "next/link";
 import {
   primaryActionClassName,
   secondaryActionClassName
 } from "@/components/button-styles";
 import { ExperienceShell } from "@/components/experience-shell";
+import { useEventSettings } from "@/lib/use-event-settings";
 
 export default function LandingPage() {
+  const { settings } = useEventSettings();
+
   return (
     <ExperienceShell
       eyebrow="Premium Event System"
-      title="Party Network"
-      subtitle="A black and gold registration, live wall, raffle draw, and prize reveal experience for one unforgettable party."
+      title={settings.title}
+      subtitle={settings.subtitle}
     >
       <div className="grid gap-3 sm:grid-cols-2">
         <Link href="/join" className={primaryActionClassName}>
@@ -29,9 +34,9 @@ export default function LandingPage() {
             <p className="font-bold uppercase text-gold">{item}</p>
             <p className="mt-2 leading-6">
               {item === "Register"
-                ? "Guests enter from one device and persist locally."
+                ? "Guests join from any phone and sync to the shared list."
                 : item === "Draw"
-                  ? "Host chooses a winner from saved guests."
+                  ? "Host chooses a winner from Supabase guests."
                   : "Prize reveals build up to the 8KG rice finale."}
             </p>
           </div>

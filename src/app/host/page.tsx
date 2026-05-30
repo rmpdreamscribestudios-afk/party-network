@@ -28,9 +28,12 @@ import {
   subscribeToGuestChanges,
   supabaseNotConfiguredMessage
 } from "@/lib/supabase-guests";
+import { saveEventSettings } from "@/lib/supabase-event-settings";
+import { useEventSettings } from "@/lib/use-event-settings";
 
 export default function HostPage() {
   const router = useRouter();
+  const { settings, reloadSettings } = useEventSettings();
   const [guests, setGuests] = useState<PartyGuest[]>([]);
   const [raffleState, setRaffleState] = useState<RaffleState>({
     prizeRevealed: false,
@@ -38,8 +41,12 @@ export default function HostPage() {
   });
   const [name, setName] = useState("");
   const [answer, setAnswer] = useState("");
+  const [eventTitle, setEventTitle] = useState(settings.title);
+  const [eventSubtitle, setEventSubtitle] = useState(settings.subtitle);
+  const [eventDate, setEventDate] = useState(settings.date ?? "");
   const [statusMessage, setStatusMessage] = useState("");
   const [isLoadingGuests, setIsLoadingGuests] = useState(false);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   const loadGuests = useCallback(async () => {
     if (!isSupabaseConfigured) {
@@ -82,6 +89,12 @@ export default function HostPage() {
     };
   }, [loadGuests]);
 
+  useEffect(() => {
+    setEventTitle(settings.title);
+    setEventSubtitle(settings.subtitle);
+    setEventDate(settings.date ?? "");
+  }, [settings]);
+
   const averageLuck = useMemo(() => {
     if (!guests.length) {
       return 0;
@@ -112,6 +125,32 @@ export default function HostPage() {
       await loadGuests();
     } catch {
       setStatusMessage("Could not add guest to Supabase.");
+    }
+  }
+
+  async function handleSaveEventSettings(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStatusMessage("");
+
+    if (!isSupabaseConfigured) {
+      setStatusMessage(supabaseNotConfiguredMessage);
+      return;
+    }
+
+    setIsSavingSettings(true);
+
+    try {
+      await saveEventSettings({
+        title: eventTitle,
+        subtitle: eventSubtitle,
+        date: eventDate || undefined
+      });
+      await reloadSettings();
+      setStatusMessage("Event settings saved.");
+    } catch {
+      setStatusMessage("Could not save event settings to Supabase.");
+    } finally {
+      setIsSavingSettings(false);
     }
   }
 
@@ -171,8 +210,18 @@ export default function HostPage() {
               Host Control
             </p>
             <h1 className="mt-2 text-4xl font-black text-champagne sm:text-6xl">
-              Party Network
+              {settings.title}
             </h1>
+            {settings.subtitle ? (
+              <p className="mt-2 max-w-2xl text-lg text-stone-300">
+                {settings.subtitle}
+              </p>
+            ) : null}
+            {settings.date ? (
+              <p className="mt-2 text-sm font-bold uppercase tracking-normal text-gold">
+                {settings.date}
+              </p>
+            ) : null}
           </div>
           <nav className="flex flex-wrap gap-3">
             <Link href="/live" className={secondaryActionClassName}>
@@ -195,6 +244,48 @@ export default function HostPage() {
         </header>
 
         <section className="grid gap-4 md:grid-cols-4">
+          <form
+            onSubmit={handleSaveEventSettings}
+            className="rounded-md border border-gold/30 bg-black/45 p-5 md:col-span-4"
+          >
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+              <div>
+                <p className="text-sm uppercase text-stone-400">Event Settings</p>
+                <h2 className="mt-1 text-2xl font-bold text-champagne">
+                  Shared Event Details
+                </h2>
+              </div>
+              <button
+                type="submit"
+                className={primaryActionClassName}
+                disabled={isSavingSettings}
+              >
+                {isSavingSettings ? "Saving..." : "Save Event Settings"}
+              </button>
+            </div>
+            <div className="mt-5 grid gap-4 md:grid-cols-[1fr_1fr_14rem]">
+              <FormField
+                required
+                label="Event Title"
+                value={eventTitle}
+                onChange={(event) => setEventTitle(event.target.value)}
+                placeholder="Welcome to Aliyah Rose's 1st Birthday"
+              />
+              <FormField
+                label="Event Subtitle"
+                value={eventSubtitle}
+                onChange={(event) => setEventSubtitle(event.target.value)}
+                placeholder="A night of games, prizes, and memories"
+              />
+              <FormField
+                label="Event Date"
+                type="date"
+                value={eventDate}
+                onChange={(event) => setEventDate(event.target.value)}
+              />
+            </div>
+          </form>
+
           <div className="rounded-md border border-gold/30 bg-black/45 p-5">
             <p className="text-sm uppercase text-stone-400">Guests</p>
             <p className="mt-2 text-5xl font-black text-gold">{guests.length}</p>

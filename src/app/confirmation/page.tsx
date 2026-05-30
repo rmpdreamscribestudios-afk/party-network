@@ -16,8 +16,10 @@ import {
   isSupabaseConfigured,
   supabaseNotConfiguredMessage
 } from "@/lib/supabase-guests";
+import { useEventSettings } from "@/lib/use-event-settings";
 
 export default function ConfirmationPage() {
+  const { settings } = useEventSettings();
   const [guest, setGuest] = useState<PartyGuest>();
   const [message, setMessage] = useState("Loading your registration...");
 
@@ -54,8 +56,8 @@ export default function ConfirmationPage() {
   return (
     <ExperienceShell
       eyebrow="Registration Confirmed"
-      title="You're In"
-      subtitle="Your name is saved to the shared event list and ready for the live event screens."
+      title={settings.title}
+      subtitle="You're in. Your name is saved to the shared event list and ready for the live event screens."
     >
       <div className="rounded-md border border-gold/40 bg-black/50 p-6 shadow-gold backdrop-blur">
         <p className="text-lg font-semibold text-champagne">

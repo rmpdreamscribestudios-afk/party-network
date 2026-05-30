@@ -14,8 +14,10 @@ import {
   subscribeToGuestChanges,
   supabaseNotConfiguredMessage
 } from "@/lib/supabase-guests";
+import { useEventSettings } from "@/lib/use-event-settings";
 
 export default function LivePage() {
+  const { settings } = useEventSettings();
   const [guests, setGuests] = useState<PartyGuest[]>([]);
   const [winnerName, setWinnerName] = useState("Pending");
   const [prizeName, setPrizeName] = useState("Awaiting reveal");
@@ -76,8 +78,13 @@ export default function LivePage() {
           <div>
             <p className="text-xl font-bold uppercase text-gold">Live Party Feed</p>
             <h1 className="mt-2 text-6xl font-black text-champagne md:text-8xl">
-              Party Network
+              {settings.title}
             </h1>
+            {settings.subtitle ? (
+              <p className="mt-3 max-w-3xl text-2xl text-stone-300">
+                {settings.subtitle}
+              </p>
+            ) : null}
           </div>
           <Link
             href="/host"

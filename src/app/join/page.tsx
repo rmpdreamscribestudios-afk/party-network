@@ -11,9 +11,11 @@ import {
   isSupabaseConfigured,
   supabaseNotConfiguredMessage
 } from "@/lib/supabase-guests";
+import { useEventSettings } from "@/lib/use-event-settings";
 
 export default function JoinPage() {
   const router = useRouter();
+  const { settings } = useEventSettings();
   const [name, setName] = useState("");
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
@@ -46,8 +48,8 @@ export default function JoinPage() {
   return (
     <ExperienceShell
       eyebrow="Guest Registration"
-      title="Join Party Network"
-      subtitle="Add your name to tonight's live wall, raffle pool, and prize reveal experience."
+      title={settings.title}
+      subtitle="Add your name to the live wall, raffle pool, and prize reveal experience."
       align="left"
     >
       <form onSubmit={handleSubmit} className="space-y-5">

@@ -17,7 +17,7 @@ Guests scan a QR code, join the event, receive a luck score, and enter a shared 
 - `/grand-prize` - final grand prize reveal
 - `/message` - host message screen
 
-Guest registrations are stored in Supabase so every phone sees the same event list. Raffle reveal state still uses browser event state for the host flow.
+Guest registrations and event settings are stored in Supabase so every phone sees the same event list and event title. Raffle reveal state still uses browser event state for the host flow.
 
 ## Local Development
 
@@ -53,16 +53,44 @@ create table public.guests (
 );
 ```
 
-4. Enable Realtime for the `guests` table in Supabase under **Database > Replication**.
-5. In **Project Settings > API**, copy the project URL and anon public key.
-6. Add these environment variables in Vercel under **Settings > Environment Variables**:
+4. Create the `event_settings` table:
+
+```sql
+create table public.event_settings (
+  id text primary key,
+  event_title text not null,
+  event_subtitle text,
+  event_date date,
+  updated_at timestamptz not null default now()
+);
+```
+
+5. Add the default event settings row:
+
+```sql
+insert into public.event_settings (
+  id,
+  event_title,
+  event_subtitle,
+  event_date
+) values (
+  'current',
+  'Party Network',
+  'A black and gold registration, live wall, raffle draw, and prize reveal experience for one unforgettable party.',
+  null
+);
+```
+
+6. Enable Realtime for the `guests` and `event_settings` tables in Supabase under **Database > Replication**.
+7. In **Project Settings > API**, copy the project URL and anon public key.
+8. Add these environment variables in Vercel under **Settings > Environment Variables**:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-7. Redeploy the Vercel project.
+9. Redeploy the Vercel project.
 
 ## Production Check
 
