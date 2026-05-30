@@ -43,11 +43,11 @@ export default function ConfirmationPage() {
         </p>
       </div>
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
-        <Link href="/live" className={primaryActionClassName}>
-          See Live Wall
-        </Link>
-        <Link href="/join" className={secondaryActionClassName}>
+        <Link href="/join" className={primaryActionClassName}>
           Add Another Guest
+        </Link>
+        <Link href="/" className={secondaryActionClassName}>
+          Back to Start
         </Link>
       </div>
     </ExperienceShell>

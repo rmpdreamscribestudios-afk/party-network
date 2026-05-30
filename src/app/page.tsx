@@ -16,7 +16,7 @@ export default function LandingPage() {
         <Link href="/join" className={primaryActionClassName}>
           Join Event
         </Link>
-        <Link href="/host" className={secondaryActionClassName}>
+        <Link href="/host-login" className={secondaryActionClassName}>
           Host Dashboard
         </Link>
       </div>

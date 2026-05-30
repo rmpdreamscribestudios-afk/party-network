@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   createGuest,
   getPrizeById,
@@ -19,8 +20,10 @@ import {
   secondaryActionClassName
 } from "@/components/button-styles";
 import { FormField } from "@/components/form-field";
+import { clearHostAccess } from "@/lib/host-auth";
 
 export default function HostPage() {
+  const router = useRouter();
   const [guests, setGuests] = useState<PartyGuest[]>([]);
   const [raffleState, setRaffleState] = useState<RaffleState>({
     prizeRevealed: false,
@@ -78,6 +81,11 @@ export default function HostPage() {
     setRaffleState({ prizeRevealed: false, grandPrizeRevealed: false });
   }
 
+  function handleLogout() {
+    clearHostAccess();
+    router.replace("/host-login");
+  }
+
   const currentWinner = guests.find((guest) => guest.id === raffleState.winnerId);
   const currentPrize = getPrizeById(raffleState.prizeId);
 
@@ -103,6 +111,13 @@ export default function HostPage() {
             <Link href="/prize" className={secondaryActionClassName}>
               Prize Reveal
             </Link>
+            <button
+              type="button"
+              className={secondaryActionClassName}
+              onClick={handleLogout}
+            >
+              Logout Host
+            </button>
           </nav>
         </header>
 
