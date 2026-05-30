@@ -1,0 +1,67 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import {
+  primaryActionClassName,
+  secondaryActionClassName
+} from "@/components/button-styles";
+import { defaultPrizes, Prize } from "@/lib/party-storage";
+
+export default function PrizePage() {
+  const regularPrizes = useMemo(
+    () => defaultPrizes.filter((prize) => !prize.isGrand),
+    []
+  );
+  const [prize, setPrize] = useState<Prize>(regularPrizes[0]);
+  const [revealed, setRevealed] = useState(false);
+
+  function choosePrize() {
+    setPrize(regularPrizes[Math.floor(Math.random() * regularPrizes.length)]);
+    setRevealed(false);
+  }
+
+  return (
+    <main className="flex min-h-screen items-center justify-center px-5 py-8 text-center">
+      <section className="w-full max-w-4xl">
+        <p className="text-lg font-bold uppercase text-gold">Prize Reveal</p>
+        <h1 className="mt-4 text-5xl font-black text-champagne md:text-8xl">
+          {prize.setup}
+        </h1>
+        <div className="mx-auto mt-10 min-h-64 rounded-md border border-gold/40 bg-black/50 p-8 shadow-gold">
+          {revealed ? (
+            <>
+              <p className="text-xl uppercase text-stone-300">Actually...</p>
+              <p className="mt-4 text-6xl font-black text-gold md:text-9xl">
+                {prize.reveal}
+              </p>
+            </>
+          ) : (
+            <p className="pt-16 text-4xl font-black text-stone-300 md:text-7xl">
+              TAP TO REVEAL
+            </p>
+          )}
+        </div>
+        <div className="mx-auto mt-8 grid max-w-2xl gap-3 sm:grid-cols-3">
+          <button
+            type="button"
+            onClick={() => setRevealed(true)}
+            className={primaryActionClassName}
+          >
+            Reveal Prize
+          </button>
+          <button
+            type="button"
+            onClick={choosePrize}
+            className={secondaryActionClassName}
+          >
+            Next Prize
+          </button>
+          <Link href="/grand-prize" className={secondaryActionClassName}>
+            Grand Prize
+          </Link>
+        </div>
+      </section>
+    </main>
+  );
+}
