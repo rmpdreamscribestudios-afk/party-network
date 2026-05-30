@@ -10,37 +10,57 @@ import {
   getPrizeById,
   PARTY_EVENT_UPDATE,
   PartyGuest,
-  readGuests,
   readRaffleState,
   writeRaffleState
 } from "@/lib/party-storage";
+import {
+  fetchGuests,
+  isSupabaseConfigured,
+  subscribeToGuestChanges,
+  supabaseNotConfiguredMessage
+} from "@/lib/supabase-guests";
 
 export default function RafflePage() {
   const [guests, setGuests] = useState<PartyGuest[]>([]);
   const [winner, setWinner] = useState<PartyGuest>();
   const [isDrawing, setIsDrawing] = useState(false);
   const [prizeName, setPrizeName] = useState("Hidden");
+  const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
-    const syncState = () => {
-      const nextGuests = readGuests();
-      const nextState = readRaffleState();
-      setGuests(nextGuests);
-      setWinner(nextGuests.find((guest) => guest.id === nextState.winnerId));
-      setPrizeName(
-        nextState.grandPrizeRevealed
-          ? "8KG Rice"
-          : nextState.prizeRevealed
-            ? getPrizeById(nextState.prizeId).reveal
-            : "Hidden"
-      );
+    const syncState = async () => {
+      if (!isSupabaseConfigured) {
+        setStatusMessage(supabaseNotConfiguredMessage);
+        return;
+      }
+
+      try {
+        const nextGuests = await fetchGuests();
+        const nextState = readRaffleState();
+        setGuests(nextGuests);
+        setWinner(nextGuests.find((guest) => guest.id === nextState.winnerId));
+        setPrizeName(
+          nextState.grandPrizeRevealed
+            ? "8KG Rice"
+            : nextState.prizeRevealed
+              ? getPrizeById(nextState.prizeId).reveal
+              : "Hidden"
+        );
+        setStatusMessage("");
+      } catch {
+        setStatusMessage("Could not load guests from Supabase.");
+      }
     };
 
     syncState();
+    const channel = subscribeToGuestChanges(syncState);
+    const pollingId = window.setInterval(syncState, 5000);
     window.addEventListener("storage", syncState);
     window.addEventListener(PARTY_EVENT_UPDATE, syncState);
 
     return () => {
+      channel?.unsubscribe();
+      window.clearInterval(pollingId);
       window.removeEventListener("storage", syncState);
       window.removeEventListener(PARTY_EVENT_UPDATE, syncState);
     };
@@ -93,7 +113,9 @@ export default function RafflePage() {
         </div>
 
         <div className="mx-auto mt-10 flex min-h-72 max-w-3xl items-center justify-center rounded-md border border-gold/40 bg-black/55 p-6 shadow-gold backdrop-blur">
-          {isDrawing ? (
+          {statusMessage ? (
+            <p className="text-2xl font-bold text-champagne">{statusMessage}</p>
+          ) : isDrawing ? (
             <p className="winner-flicker text-5xl font-black text-gold md:text-8xl">
               SCANNING...
             </p>

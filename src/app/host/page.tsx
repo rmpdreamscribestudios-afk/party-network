@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -8,11 +8,9 @@ import {
   getPrizeById,
   PARTY_EVENT_UPDATE,
   PartyGuest,
-  readGuests,
   readRaffleState,
   resetPartyData,
   RaffleState,
-  writeGuests,
   writeRaffleState
 } from "@/lib/party-storage";
 import {
@@ -21,6 +19,15 @@ import {
 } from "@/components/button-styles";
 import { FormField } from "@/components/form-field";
 import { clearHostAccess } from "@/lib/host-auth";
+import {
+  clearGuests,
+  deleteGuest,
+  fetchGuests,
+  insertGuest,
+  isSupabaseConfigured,
+  subscribeToGuestChanges,
+  supabaseNotConfiguredMessage
+} from "@/lib/supabase-guests";
 
 export default function HostPage() {
   const router = useRouter();
@@ -31,22 +38,49 @@ export default function HostPage() {
   });
   const [name, setName] = useState("");
   const [answer, setAnswer] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [isLoadingGuests, setIsLoadingGuests] = useState(false);
+
+  const loadGuests = useCallback(async () => {
+    if (!isSupabaseConfigured) {
+      setStatusMessage(supabaseNotConfiguredMessage);
+      setGuests([]);
+      return;
+    }
+
+    setIsLoadingGuests(true);
+    setStatusMessage("");
+
+    try {
+      setGuests(await fetchGuests());
+    } catch {
+      setStatusMessage("Could not load guests from Supabase.");
+    } finally {
+      setIsLoadingGuests(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const syncState = () => {
-      setGuests(readGuests());
+    const syncRaffleState = () => {
       setRaffleState(readRaffleState());
     };
 
-    syncState();
-    window.addEventListener("storage", syncState);
-    window.addEventListener(PARTY_EVENT_UPDATE, syncState);
+    syncRaffleState();
+    loadGuests();
+
+    const channel = subscribeToGuestChanges(loadGuests);
+    const pollingId = window.setInterval(loadGuests, 5000);
+
+    window.addEventListener("storage", syncRaffleState);
+    window.addEventListener(PARTY_EVENT_UPDATE, syncRaffleState);
 
     return () => {
-      window.removeEventListener("storage", syncState);
-      window.removeEventListener(PARTY_EVENT_UPDATE, syncState);
+      channel?.unsubscribe();
+      window.clearInterval(pollingId);
+      window.removeEventListener("storage", syncRaffleState);
+      window.removeEventListener(PARTY_EVENT_UPDATE, syncRaffleState);
     };
-  }, []);
+  }, [loadGuests]);
 
   const averageLuck = useMemo(() => {
     if (!guests.length) {
@@ -58,26 +92,65 @@ export default function HostPage() {
     );
   }, [guests]);
 
-  function updateGuests(nextGuests: PartyGuest[]) {
-    setGuests(nextGuests);
-    writeGuests(nextGuests);
-  }
-
-  function handleAddGuest(event: FormEvent<HTMLFormElement>) {
+  async function handleAddGuest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setStatusMessage("");
 
     if (!name.trim()) {
       return;
     }
 
-    updateGuests([createGuest(name, answer), ...guests]);
-    setName("");
-    setAnswer("");
+    if (!isSupabaseConfigured) {
+      setStatusMessage(supabaseNotConfiguredMessage);
+      return;
+    }
+
+    try {
+      await insertGuest(createGuest(name, answer));
+      setName("");
+      setAnswer("");
+      await loadGuests();
+    } catch {
+      setStatusMessage("Could not add guest to Supabase.");
+    }
   }
 
-  function handleResetEvent() {
+  async function handleDeleteGuest(id: string) {
+    setStatusMessage("");
+
+    try {
+      await deleteGuest(id);
+      await loadGuests();
+    } catch {
+      setStatusMessage("Could not delete guest from Supabase.");
+    }
+  }
+
+  async function handleClearGuests() {
+    setStatusMessage("");
+
+    try {
+      await clearGuests();
+      writeRaffleState({
+        prizeRevealed: false,
+        grandPrizeRevealed: false
+      });
+      await loadGuests();
+    } catch {
+      setStatusMessage("Could not clear guests from Supabase.");
+    }
+  }
+
+  async function handleResetEvent() {
     resetPartyData();
-    setGuests([]);
+    if (isSupabaseConfigured) {
+      try {
+        await clearGuests();
+      } catch {
+        setStatusMessage("Local event state was reset, but Supabase guests could not be cleared.");
+      }
+    }
+    await loadGuests();
     setRaffleState({ prizeRevealed: false, grandPrizeRevealed: false });
   }
 
@@ -171,13 +244,7 @@ export default function HostPage() {
               <button
                 type="button"
                 className={secondaryActionClassName}
-                onClick={() => {
-                  updateGuests([]);
-                  writeRaffleState({
-                    prizeRevealed: false,
-                    grandPrizeRevealed: false
-                  });
-                }}
+                onClick={handleClearGuests}
                 disabled={!guests.length}
               >
                 Clear Guest List
@@ -197,8 +264,20 @@ export default function HostPage() {
               <h2 className="text-2xl font-bold text-champagne">
                 Registered Guests
               </h2>
-              <span className="text-sm text-stone-400">localStorage MVP</span>
+              <button
+                type="button"
+                className="rounded-md border border-gold/40 px-4 py-2 text-sm font-bold text-champagne transition hover:border-gold"
+                onClick={loadGuests}
+                disabled={isLoadingGuests}
+              >
+                {isLoadingGuests ? "Refreshing..." : "Refresh Guests"}
+              </button>
             </div>
+            {statusMessage ? (
+              <p className="mt-4 rounded-md border border-gold/30 bg-black/50 p-3 text-sm font-semibold text-champagne">
+                {statusMessage}
+              </p>
+            ) : null}
             <div className="mt-5 max-h-[56vh] space-y-3 overflow-auto pr-1">
               {guests.length ? (
                 guests.map((guest) => (
@@ -221,9 +300,7 @@ export default function HostPage() {
                     </p>
                     <button
                       type="button"
-                      onClick={() =>
-                        updateGuests(guests.filter((item) => item.id !== guest.id))
-                      }
+                      onClick={() => handleDeleteGuest(guest.id)}
                       className="min-h-11 rounded-md border border-red-400/40 px-4 font-bold text-red-100 transition hover:bg-red-500/15"
                     >
                       Delete

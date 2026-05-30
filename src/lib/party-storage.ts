@@ -23,8 +23,6 @@ export type RaffleState = {
   updatedAt?: string;
 };
 
-export const PARTY_GUESTS_KEY = "party-network-guests";
-export const PARTY_CURRENT_GUEST_KEY = "party-network-current-guest-id";
 export const PARTY_RAFFLE_STATE_KEY = "party-network-raffle-state";
 export const PARTY_EVENT_UPDATE = "party-network-state-updated";
 
@@ -60,42 +58,8 @@ export function createGuest(name: string, answer?: string): PartyGuest {
   };
 }
 
-export function readGuests(): PartyGuest[] {
-  if (typeof window === "undefined") {
-    return [];
-  }
-
-  try {
-    const rawGuests = window.localStorage.getItem(PARTY_GUESTS_KEY);
-    if (!rawGuests) {
-      return [];
-    }
-
-    const parsedGuests = JSON.parse(rawGuests);
-    return Array.isArray(parsedGuests) ? parsedGuests : [];
-  } catch {
-    return [];
-  }
-}
-
 export function emitPartyUpdate() {
   window.dispatchEvent(new Event(PARTY_EVENT_UPDATE));
-}
-
-export function writeGuests(guests: PartyGuest[]) {
-  window.localStorage.setItem(PARTY_GUESTS_KEY, JSON.stringify(guests));
-  emitPartyUpdate();
-}
-
-export function addGuest(guest: PartyGuest) {
-  const guests = readGuests();
-  writeGuests([guest, ...guests]);
-  window.localStorage.setItem(PARTY_CURRENT_GUEST_KEY, guest.id);
-}
-
-export function findCurrentGuest(): PartyGuest | undefined {
-  const currentGuestId = window.localStorage.getItem(PARTY_CURRENT_GUEST_KEY);
-  return readGuests().find((guest) => guest.id === currentGuestId);
 }
 
 export function readRaffleState(): RaffleState {
@@ -128,8 +92,6 @@ export function writeRaffleState(state: RaffleState) {
 }
 
 export function resetPartyData() {
-  window.localStorage.removeItem(PARTY_GUESTS_KEY);
-  window.localStorage.removeItem(PARTY_CURRENT_GUEST_KEY);
   window.localStorage.removeItem(PARTY_RAFFLE_STATE_KEY);
   emitPartyUpdate();
 }

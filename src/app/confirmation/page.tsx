@@ -8,23 +8,54 @@ import {
 } from "@/components/button-styles";
 import { ExperienceShell } from "@/components/experience-shell";
 import {
-  findCurrentGuest,
   getLuckMessage,
   PartyGuest
 } from "@/lib/party-storage";
+import {
+  fetchGuestById,
+  isSupabaseConfigured,
+  supabaseNotConfiguredMessage
+} from "@/lib/supabase-guests";
 
 export default function ConfirmationPage() {
   const [guest, setGuest] = useState<PartyGuest>();
+  const [message, setMessage] = useState("Loading your registration...");
 
   useEffect(() => {
-    setGuest(findCurrentGuest());
+    async function loadGuest() {
+      if (!isSupabaseConfigured) {
+        setMessage(supabaseNotConfiguredMessage);
+        return;
+      }
+
+      const guestId = new URLSearchParams(window.location.search).get("id");
+
+      if (!guestId) {
+        setMessage("Register from the join page to generate your score.");
+        return;
+      }
+
+      try {
+        const nextGuest = await fetchGuestById(guestId);
+        setGuest(nextGuest);
+        setMessage(
+          nextGuest
+            ? getLuckMessage(nextGuest.luckScore)
+            : "Register from the join page to generate your score."
+        );
+      } catch {
+        setMessage("Could not load your registration. Please check with the host.");
+      }
+    }
+
+    loadGuest();
   }, []);
 
   return (
     <ExperienceShell
       eyebrow="Registration Confirmed"
       title="You're In"
-      subtitle="Your name is saved locally on this device and ready for the live event screens."
+      subtitle="Your name is saved to the shared event list and ready for the live event screens."
     >
       <div className="rounded-md border border-gold/40 bg-black/50 p-6 shadow-gold backdrop-blur">
         <p className="text-lg font-semibold text-champagne">
@@ -37,9 +68,7 @@ export default function ConfirmationPage() {
           {guest?.luckScore ?? "--"}
         </p>
         <p className="mt-4 text-base leading-7 text-stone-200">
-          {guest
-            ? getLuckMessage(guest.luckScore)
-            : "Register from the join page to generate your score."}
+          {message}
         </p>
       </div>
       <div className="mt-8 grid gap-3 sm:grid-cols-2">

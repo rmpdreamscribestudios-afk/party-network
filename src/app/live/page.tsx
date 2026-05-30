@@ -6,43 +6,65 @@ import {
   getPrizeById,
   PARTY_EVENT_UPDATE,
   PartyGuest,
-  readGuests,
   readRaffleState
 } from "@/lib/party-storage";
+import {
+  fetchGuests,
+  isSupabaseConfigured,
+  subscribeToGuestChanges,
+  supabaseNotConfiguredMessage
+} from "@/lib/supabase-guests";
 
 export default function LivePage() {
   const [guests, setGuests] = useState<PartyGuest[]>([]);
   const [winnerName, setWinnerName] = useState("Pending");
   const [prizeName, setPrizeName] = useState("Awaiting reveal");
+  const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
-    const syncGuests = () => {
-      const nextGuests = readGuests();
-      const state = readRaffleState();
-      setGuests(nextGuests);
-      setWinnerName(
-        nextGuests.find((guest) => guest.id === state.winnerId)?.name ?? "Pending"
-      );
-      setPrizeName(
-        state.grandPrizeRevealed
-          ? "8KG Rice"
-          : state.prizeRevealed
-            ? getPrizeById(state.prizeId).reveal
-            : "Awaiting reveal"
-      );
+    const syncGuests = async () => {
+      if (!isSupabaseConfigured) {
+        setStatusMessage(supabaseNotConfiguredMessage);
+        return;
+      }
+
+      try {
+        const nextGuests = await fetchGuests();
+        const state = readRaffleState();
+        setGuests(nextGuests);
+        setWinnerName(
+          nextGuests.find((guest) => guest.id === state.winnerId)?.name ?? "Pending"
+        );
+        setPrizeName(
+          state.grandPrizeRevealed
+            ? "8KG Rice"
+            : state.prizeRevealed
+              ? getPrizeById(state.prizeId).reveal
+              : "Awaiting reveal"
+        );
+        setStatusMessage("");
+      } catch {
+        setStatusMessage("Could not load guests from Supabase.");
+      }
     };
 
     syncGuests();
+    const channel = subscribeToGuestChanges(syncGuests);
+    const pollingId = window.setInterval(syncGuests, 5000);
     window.addEventListener("storage", syncGuests);
     window.addEventListener(PARTY_EVENT_UPDATE, syncGuests);
 
     return () => {
+      channel?.unsubscribe();
+      window.clearInterval(pollingId);
       window.removeEventListener("storage", syncGuests);
       window.removeEventListener(PARTY_EVENT_UPDATE, syncGuests);
     };
   }, []);
 
-  const displayGuests = guests.length
+  const displayGuests = statusMessage
+    ? []
+    : guests.length
     ? guests
     : [{ id: "empty", name: "Join the Network", luckScore: 100, createdAt: "" }];
 
@@ -66,6 +88,11 @@ export default function LivePage() {
         </header>
 
         <div className="relative my-10 min-h-[44vh]">
+          {statusMessage ? (
+            <p className="rounded-md border border-gold/30 bg-black/55 p-8 text-center text-3xl font-bold text-champagne">
+              {statusMessage}
+            </p>
+          ) : null}
           {displayGuests.slice(0, 18).map((guest, index) => (
             <span
               key={`${guest.id}-${index}`}
