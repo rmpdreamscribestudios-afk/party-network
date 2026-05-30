@@ -9,15 +9,13 @@ import {
 import {
   getPrizeById,
   PARTY_EVENT_UPDATE,
-  PartyGuest,
   readRaffleState,
   writeRaffleState
 } from "@/lib/party-storage";
+import type { PartyGuest } from "@/lib/party-storage";
 import {
   fetchGuests,
-  isSupabaseConfigured,
-  subscribeToGuestChanges,
-  supabaseNotConfiguredMessage
+  subscribeToGuestChanges
 } from "@/lib/supabase-guests";
 import { useEventSettings } from "@/lib/use-event-settings";
 
@@ -31,11 +29,6 @@ export default function RafflePage() {
 
   useEffect(() => {
     const syncState = async () => {
-      if (!isSupabaseConfigured) {
-        setStatusMessage(supabaseNotConfiguredMessage);
-        return;
-      }
-
       try {
         const nextGuests = await fetchGuests();
         const nextState = readRaffleState();
@@ -50,7 +43,7 @@ export default function RafflePage() {
         );
         setStatusMessage("");
       } catch {
-        setStatusMessage("Could not load guests from Supabase.");
+        setStatusMessage("Could not load guests.");
       }
     };
 

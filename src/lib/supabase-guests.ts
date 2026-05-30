@@ -2,7 +2,14 @@
 
 import { createClient } from "@supabase/supabase-js";
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import { PartyGuest } from "@/lib/party-storage";
+import {
+  addLocalGuest,
+  clearLocalGuests,
+  deleteLocalGuest,
+  readLocalGuestById,
+  readLocalGuests
+} from "@/lib/party-storage";
+import type { PartyGuest } from "@/lib/party-storage";
 
 type GuestRow = {
   id: string;
@@ -21,9 +28,7 @@ type GuestInsert = {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabaseNotConfiguredMessage = "Supabase is not configured yet.";
-
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl!, supabaseAnonKey!)
@@ -41,7 +46,7 @@ function mapGuest(row: GuestRow): PartyGuest {
 
 export async function fetchGuests(): Promise<PartyGuest[]> {
   if (!supabase) {
-    return [];
+    return readLocalGuests();
   }
 
   const { data, error } = await supabase
@@ -58,7 +63,7 @@ export async function fetchGuests(): Promise<PartyGuest[]> {
 
 export async function fetchGuestById(id: string): Promise<PartyGuest | undefined> {
   if (!supabase) {
-    return undefined;
+    return readLocalGuestById(id);
   }
 
   const { data, error } = await supabase
@@ -76,7 +81,7 @@ export async function fetchGuestById(id: string): Promise<PartyGuest | undefined
 
 export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
   if (!supabase) {
-    throw new Error(supabaseNotConfiguredMessage);
+    return addLocalGuest(guest);
   }
 
   const payload: GuestInsert = {
@@ -100,7 +105,8 @@ export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
 
 export async function deleteGuest(id: string) {
   if (!supabase) {
-    throw new Error(supabaseNotConfiguredMessage);
+    deleteLocalGuest(id);
+    return;
   }
 
   const { error } = await supabase.from("guests").delete().eq("id", id);
@@ -112,7 +118,8 @@ export async function deleteGuest(id: string) {
 
 export async function clearGuests() {
   if (!supabase) {
-    throw new Error(supabaseNotConfiguredMessage);
+    clearLocalGuests();
+    return;
   }
 
   const { error } = await supabase.from("guests").delete().not("id", "is", null);

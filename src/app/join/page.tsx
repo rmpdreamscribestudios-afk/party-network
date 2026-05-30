@@ -6,11 +6,7 @@ import { primaryActionClassName } from "@/components/button-styles";
 import { ExperienceShell } from "@/components/experience-shell";
 import { FormField } from "@/components/form-field";
 import { createGuest } from "@/lib/party-storage";
-import {
-  insertGuest,
-  isSupabaseConfigured,
-  supabaseNotConfiguredMessage
-} from "@/lib/supabase-guests";
+import { insertGuest } from "@/lib/supabase-guests";
 import { useEventSettings } from "@/lib/use-event-settings";
 
 export default function JoinPage() {
@@ -26,11 +22,6 @@ export default function JoinPage() {
     setError("");
 
     if (!name.trim()) {
-      return;
-    }
-
-    if (!isSupabaseConfigured) {
-      setError(supabaseNotConfiguredMessage);
       return;
     }
 

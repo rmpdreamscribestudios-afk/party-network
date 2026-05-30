@@ -2,6 +2,7 @@
 
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase-guests";
+import { emitPartyUpdate } from "@/lib/party-storage";
 
 export type EventSettings = {
   title: string;
@@ -24,6 +25,7 @@ type EventSettingsUpsert = {
 };
 
 export const EVENT_SETTINGS_ID = "current";
+export const PARTY_EVENT_SETTINGS_KEY = "party-network-event-settings";
 
 export const defaultEventSettings: EventSettings = {
   title: "Party Network",
@@ -39,9 +41,41 @@ function mapEventSettings(row: EventSettingsRow): EventSettings {
   };
 }
 
+function readLocalEventSettings(): EventSettings {
+  if (typeof window === "undefined") {
+    return defaultEventSettings;
+  }
+
+  try {
+    const rawSettings = window.localStorage.getItem(PARTY_EVENT_SETTINGS_KEY);
+    if (!rawSettings) {
+      return defaultEventSettings;
+    }
+
+    return {
+      ...defaultEventSettings,
+      ...(JSON.parse(rawSettings) as Partial<EventSettings>)
+    };
+  } catch {
+    return defaultEventSettings;
+  }
+}
+
+function writeLocalEventSettings(settings: EventSettings) {
+  window.localStorage.setItem(
+    PARTY_EVENT_SETTINGS_KEY,
+    JSON.stringify({
+      title: settings.title.trim() || defaultEventSettings.title,
+      subtitle: settings.subtitle.trim(),
+      date: settings.date || undefined
+    })
+  );
+  emitPartyUpdate();
+}
+
 export async function fetchEventSettings(): Promise<EventSettings> {
   if (!supabase) {
-    return defaultEventSettings;
+    return readLocalEventSettings();
   }
 
   const { data, error } = await supabase
@@ -59,7 +93,8 @@ export async function fetchEventSettings(): Promise<EventSettings> {
 
 export async function saveEventSettings(settings: EventSettings) {
   if (!supabase) {
-    throw new Error("Supabase is not configured yet.");
+    writeLocalEventSettings(settings);
+    return;
   }
 
   const payload: EventSettingsUpsert = {

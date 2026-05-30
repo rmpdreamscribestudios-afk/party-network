@@ -7,6 +7,7 @@ import {
   fetchEventSettings,
   subscribeToEventSettingsChanges
 } from "@/lib/supabase-event-settings";
+import { PARTY_EVENT_UPDATE } from "@/lib/party-storage";
 
 export function useEventSettings() {
   const [settings, setSettings] = useState<EventSettings>(defaultEventSettings);
@@ -18,16 +19,20 @@ export function useEventSettings() {
       setError("");
     } catch {
       setSettings(defaultEventSettings);
-      setError("Could not load event settings from Supabase.");
+      setError("Could not load event settings.");
     }
   }, []);
 
   useEffect(() => {
     loadSettings();
     const channel = subscribeToEventSettingsChanges(loadSettings);
+    window.addEventListener("storage", loadSettings);
+    window.addEventListener(PARTY_EVENT_UPDATE, loadSettings);
 
     return () => {
       channel?.unsubscribe();
+      window.removeEventListener("storage", loadSettings);
+      window.removeEventListener(PARTY_EVENT_UPDATE, loadSettings);
     };
   }, [loadSettings]);
 

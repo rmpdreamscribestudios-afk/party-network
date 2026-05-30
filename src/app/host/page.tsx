@@ -7,12 +7,11 @@ import {
   createGuest,
   getPrizeById,
   PARTY_EVENT_UPDATE,
-  PartyGuest,
   readRaffleState,
   resetPartyData,
-  RaffleState,
   writeRaffleState
 } from "@/lib/party-storage";
+import type { PartyGuest, RaffleState } from "@/lib/party-storage";
 import {
   primaryActionClassName,
   secondaryActionClassName
@@ -24,9 +23,7 @@ import {
   deleteGuest,
   fetchGuests,
   insertGuest,
-  isSupabaseConfigured,
-  subscribeToGuestChanges,
-  supabaseNotConfiguredMessage
+  subscribeToGuestChanges
 } from "@/lib/supabase-guests";
 import { saveEventSettings } from "@/lib/supabase-event-settings";
 import { useEventSettings } from "@/lib/use-event-settings";
@@ -49,19 +46,13 @@ export default function HostPage() {
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   const loadGuests = useCallback(async () => {
-    if (!isSupabaseConfigured) {
-      setStatusMessage(supabaseNotConfiguredMessage);
-      setGuests([]);
-      return;
-    }
-
     setIsLoadingGuests(true);
     setStatusMessage("");
 
     try {
       setGuests(await fetchGuests());
     } catch {
-      setStatusMessage("Could not load guests from Supabase.");
+      setStatusMessage("Could not load guests.");
     } finally {
       setIsLoadingGuests(false);
     }
@@ -79,13 +70,17 @@ export default function HostPage() {
     const pollingId = window.setInterval(loadGuests, 5000);
 
     window.addEventListener("storage", syncRaffleState);
+    window.addEventListener("storage", loadGuests);
     window.addEventListener(PARTY_EVENT_UPDATE, syncRaffleState);
+    window.addEventListener(PARTY_EVENT_UPDATE, loadGuests);
 
     return () => {
       channel?.unsubscribe();
       window.clearInterval(pollingId);
       window.removeEventListener("storage", syncRaffleState);
+      window.removeEventListener("storage", loadGuests);
       window.removeEventListener(PARTY_EVENT_UPDATE, syncRaffleState);
+      window.removeEventListener(PARTY_EVENT_UPDATE, loadGuests);
     };
   }, [loadGuests]);
 
@@ -113,29 +108,19 @@ export default function HostPage() {
       return;
     }
 
-    if (!isSupabaseConfigured) {
-      setStatusMessage(supabaseNotConfiguredMessage);
-      return;
-    }
-
     try {
       await insertGuest(createGuest(name, answer));
       setName("");
       setAnswer("");
       await loadGuests();
     } catch {
-      setStatusMessage("Could not add guest to Supabase.");
+      setStatusMessage("Could not add guest.");
     }
   }
 
   async function handleSaveEventSettings(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatusMessage("");
-
-    if (!isSupabaseConfigured) {
-      setStatusMessage(supabaseNotConfiguredMessage);
-      return;
-    }
 
     setIsSavingSettings(true);
 
@@ -148,7 +133,7 @@ export default function HostPage() {
       await reloadSettings();
       setStatusMessage("Event settings saved.");
     } catch {
-      setStatusMessage("Could not save event settings to Supabase.");
+      setStatusMessage("Could not save event settings.");
     } finally {
       setIsSavingSettings(false);
     }
@@ -161,7 +146,7 @@ export default function HostPage() {
       await deleteGuest(id);
       await loadGuests();
     } catch {
-      setStatusMessage("Could not delete guest from Supabase.");
+      setStatusMessage("Could not delete guest.");
     }
   }
 
@@ -176,18 +161,16 @@ export default function HostPage() {
       });
       await loadGuests();
     } catch {
-      setStatusMessage("Could not clear guests from Supabase.");
+      setStatusMessage("Could not clear guests.");
     }
   }
 
   async function handleResetEvent() {
     resetPartyData();
-    if (isSupabaseConfigured) {
-      try {
-        await clearGuests();
-      } catch {
-        setStatusMessage("Local event state was reset, but Supabase guests could not be cleared.");
-      }
+    try {
+      await clearGuests();
+    } catch {
+      setStatusMessage("Local event state was reset, but guests could not be cleared.");
     }
     await loadGuests();
     setRaffleState({ prizeRevealed: false, grandPrizeRevealed: false });

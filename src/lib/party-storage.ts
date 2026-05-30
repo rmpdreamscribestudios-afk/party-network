@@ -24,6 +24,7 @@ export type RaffleState = {
 };
 
 export const PARTY_RAFFLE_STATE_KEY = "party-network-raffle-state";
+export const PARTY_GUESTS_KEY = "party-network-guests";
 export const PARTY_EVENT_UPDATE = "party-network-state-updated";
 
 export const defaultPrizes: Prize[] = [
@@ -62,6 +63,49 @@ export function emitPartyUpdate() {
   window.dispatchEvent(new Event(PARTY_EVENT_UPDATE));
 }
 
+export function readLocalGuests(): PartyGuest[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const rawGuests = window.localStorage.getItem(PARTY_GUESTS_KEY);
+    if (!rawGuests) {
+      return [];
+    }
+
+    const parsedGuests = JSON.parse(rawGuests) as PartyGuest[];
+    return parsedGuests
+      .filter((guest) => guest.id && guest.name)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  } catch {
+    return [];
+  }
+}
+
+export function readLocalGuestById(id: string): PartyGuest | undefined {
+  return readLocalGuests().find((guest) => guest.id === id);
+}
+
+export function writeLocalGuests(guests: PartyGuest[]) {
+  window.localStorage.setItem(PARTY_GUESTS_KEY, JSON.stringify(guests));
+  emitPartyUpdate();
+}
+
+export function addLocalGuest(guest: PartyGuest): PartyGuest {
+  writeLocalGuests([guest, ...readLocalGuests()]);
+  return guest;
+}
+
+export function deleteLocalGuest(id: string) {
+  writeLocalGuests(readLocalGuests().filter((guest) => guest.id !== id));
+}
+
+export function clearLocalGuests() {
+  window.localStorage.removeItem(PARTY_GUESTS_KEY);
+  emitPartyUpdate();
+}
+
 export function readRaffleState(): RaffleState {
   if (typeof window === "undefined") {
     return initialRaffleState;
@@ -92,6 +136,7 @@ export function writeRaffleState(state: RaffleState) {
 }
 
 export function resetPartyData() {
+  window.localStorage.removeItem(PARTY_GUESTS_KEY);
   window.localStorage.removeItem(PARTY_RAFFLE_STATE_KEY);
   emitPartyUpdate();
 }

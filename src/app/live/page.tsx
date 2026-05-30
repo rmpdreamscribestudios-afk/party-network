@@ -5,14 +5,12 @@ import Link from "next/link";
 import {
   getPrizeById,
   PARTY_EVENT_UPDATE,
-  PartyGuest,
   readRaffleState
 } from "@/lib/party-storage";
+import type { PartyGuest } from "@/lib/party-storage";
 import {
   fetchGuests,
-  isSupabaseConfigured,
-  subscribeToGuestChanges,
-  supabaseNotConfiguredMessage
+  subscribeToGuestChanges
 } from "@/lib/supabase-guests";
 import { useEventSettings } from "@/lib/use-event-settings";
 
@@ -25,11 +23,6 @@ export default function LivePage() {
 
   useEffect(() => {
     const syncGuests = async () => {
-      if (!isSupabaseConfigured) {
-        setStatusMessage(supabaseNotConfiguredMessage);
-        return;
-      }
-
       try {
         const nextGuests = await fetchGuests();
         const state = readRaffleState();
@@ -46,7 +39,7 @@ export default function LivePage() {
         );
         setStatusMessage("");
       } catch {
-        setStatusMessage("Could not load guests from Supabase.");
+        setStatusMessage("Could not load guests.");
       }
     };
 

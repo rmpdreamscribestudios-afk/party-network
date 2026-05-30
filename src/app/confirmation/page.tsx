@@ -7,15 +7,9 @@ import {
   secondaryActionClassName
 } from "@/components/button-styles";
 import { ExperienceShell } from "@/components/experience-shell";
-import {
-  getLuckMessage,
-  PartyGuest
-} from "@/lib/party-storage";
-import {
-  fetchGuestById,
-  isSupabaseConfigured,
-  supabaseNotConfiguredMessage
-} from "@/lib/supabase-guests";
+import { getLuckMessage } from "@/lib/party-storage";
+import type { PartyGuest } from "@/lib/party-storage";
+import { fetchGuestById } from "@/lib/supabase-guests";
 import { useEventSettings } from "@/lib/use-event-settings";
 
 export default function ConfirmationPage() {
@@ -25,11 +19,6 @@ export default function ConfirmationPage() {
 
   useEffect(() => {
     async function loadGuest() {
-      if (!isSupabaseConfigured) {
-        setMessage(supabaseNotConfiguredMessage);
-        return;
-      }
-
       const guestId = new URLSearchParams(window.location.search).get("id");
 
       if (!guestId) {
