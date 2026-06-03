@@ -76,6 +76,7 @@ create table public.event_settings (
   event_title text not null,
   event_subtitle text,
   event_date date,
+  event_type text not null default 'Birthday',
   updated_at timestamptz not null default now()
 );
 ```
@@ -87,12 +88,14 @@ insert into public.event_settings (
   id,
   event_title,
   event_subtitle,
-  event_date
+  event_date,
+  event_type
 ) values (
   'current',
   'Party Network',
   'Helping people connect, participate, and create meaningful memories together.',
-  null
+  null,
+  'Birthday'
 );
 ```
 
@@ -110,7 +113,13 @@ create table public.missions (
       'Family',
       'Team Building',
       'Community',
-      'Kindness'
+      'Kindness',
+      'Meet Someone New',
+      'Shared Interests',
+      'Story Exchange',
+      'Kindness Challenge',
+      'Community Builder',
+      'Team Connector'
     )
   ),
   is_active boolean not null default true,
@@ -155,7 +164,9 @@ create table public.connection_records (
   id uuid primary key default gen_random_uuid(),
   guest_id uuid not null references public.guests(id) on delete cascade,
   met_guest_id uuid references public.guests(id) on delete set null,
+  person_first_name text,
   mission_id text not null,
+  reflection text,
   created_at timestamptz not null default now()
 );
 
@@ -170,17 +181,17 @@ create index connection_records_mission_idx
 
 ```sql
 insert into public.missions (prompt, category, is_template) values
-  ('Find someone who shares your hobby.', 'Friendship', true),
-  ('Meet someone from another group.', 'Community', true),
-  ('Learn one thing about someone new.', 'Icebreaker', true),
-  ('Find someone who has visited another country.', 'Icebreaker', true),
-  ('Find someone with the same favorite food.', 'Friendship', true),
-  ('Meet someone from another table and learn what brought them here.', 'Icebreaker', true),
-  ('Find a guest you have not spoken to yet and trade favorite snacks.', 'Friendship', true),
-  ('Ask someone for a family tradition they actually enjoy.', 'Family', true),
-  ('Form a tiny team of three and create a shared celebration chant.', 'Team Building', true),
-  ('Introduce two guests who should know each other.', 'Community', true),
-  ('Give someone a specific, genuine compliment.', 'Kindness', true);
+  ('Introduce yourself to someone you haven''t met.', 'Meet Someone New', true),
+  ('Learn their hometown.', 'Meet Someone New', true),
+  ('Find someone who enjoys the same hobby.', 'Shared Interests', true),
+  ('Find someone who likes the same food.', 'Shared Interests', true),
+  ('Ask someone about a memorable life moment.', 'Story Exchange', true),
+  ('Learn one lesson they wish they knew earlier.', 'Story Exchange', true),
+  ('Give a genuine compliment.', 'Kindness Challenge', true),
+  ('Thank someone for something they do.', 'Kindness Challenge', true),
+  ('Introduce two people who don''t know each other.', 'Community Builder', true),
+  ('Welcome a newcomer.', 'Community Builder', true),
+  ('Meet someone from another department or team.', 'Team Connector', true);
 ```
 
 10. Enable Realtime for the `missions`, `mission_rounds`, `guest_missions`, and `connection_records` tables in Supabase under **Database > Replication**.

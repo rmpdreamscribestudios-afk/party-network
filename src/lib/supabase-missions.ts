@@ -10,7 +10,13 @@ export const missionCategories = [
   "Family",
   "Team Building",
   "Community",
-  "Kindness"
+  "Kindness",
+  "Meet Someone New",
+  "Shared Interests",
+  "Story Exchange",
+  "Kindness Challenge",
+  "Community Builder",
+  "Team Connector"
 ] as const;
 
 export type MissionCategory = (typeof missionCategories)[number];
@@ -100,58 +106,58 @@ export type MissionCompletionInput = {
 
 export const missionExamples: MissionInput[] = [
   {
-    prompt: "Find someone who shares your hobby.",
-    category: "Friendship",
+    prompt: "Introduce yourself to someone you haven't met.",
+    category: "Meet Someone New",
     isTemplate: true
   },
   {
-    prompt: "Meet someone from another group.",
-    category: "Community",
+    prompt: "Learn their hometown.",
+    category: "Meet Someone New",
     isTemplate: true
   },
   {
-    prompt: "Learn one thing about someone new.",
-    category: "Icebreaker",
+    prompt: "Find someone who enjoys the same hobby.",
+    category: "Shared Interests",
     isTemplate: true
   },
   {
-    prompt: "Find someone who has visited another country.",
-    category: "Icebreaker",
+    prompt: "Find someone who likes the same food.",
+    category: "Shared Interests",
     isTemplate: true
   },
   {
-    prompt: "Find someone with the same favorite food.",
-    category: "Friendship",
+    prompt: "Ask someone about a memorable life moment.",
+    category: "Story Exchange",
     isTemplate: true
   },
   {
-    prompt: "Meet someone from another table and learn what brought them here.",
-    category: "Icebreaker",
+    prompt: "Learn one lesson they wish they knew earlier.",
+    category: "Story Exchange",
     isTemplate: true
   },
   {
-    prompt: "Find a guest you have not spoken to yet and trade favorite snacks.",
-    category: "Friendship",
+    prompt: "Give a genuine compliment.",
+    category: "Kindness Challenge",
     isTemplate: true
   },
   {
-    prompt: "Ask someone for a family tradition they actually enjoy.",
-    category: "Family",
+    prompt: "Thank someone for something they do.",
+    category: "Kindness Challenge",
     isTemplate: true
   },
   {
-    prompt: "Form a tiny team of three and create a shared celebration chant.",
-    category: "Team Building",
+    prompt: "Introduce two people who don't know each other.",
+    category: "Community Builder",
     isTemplate: true
   },
   {
-    prompt: "Introduce two guests who should know each other.",
-    category: "Community",
+    prompt: "Welcome a newcomer.",
+    category: "Community Builder",
     isTemplate: true
   },
   {
-    prompt: "Give someone a specific, genuine compliment.",
-    category: "Kindness",
+    prompt: "Meet someone from another department or team.",
+    category: "Team Connector",
     isTemplate: true
   }
 ];

@@ -1,11 +1,16 @@
 "use client";
 
 import type { MissionCategory, MissionInput } from "@/lib/supabase-missions";
+import type {
+  ConnectionMission,
+  ConnectionMissionCategory
+} from "@/lib/connection-engine";
 
 export const eventTypes = [
   "Birthday",
   "School",
   "Church",
+  "Corporate",
   "Team Building",
   "Community Event",
   "Conference",
@@ -21,6 +26,7 @@ export type EventTemplate = {
   icebreakers: MissionInput[];
   participationActivities: MissionInput[];
   hostPrompts: MissionInput[];
+  connectionMissions: ConnectionMission[];
 };
 
 function mission(prompt: string, category: MissionCategory): MissionInput {
@@ -29,6 +35,18 @@ function mission(prompt: string, category: MissionCategory): MissionInput {
     category,
     isTemplate: true,
     isActive: true
+  };
+}
+
+function connectionMission(
+  id: string,
+  prompt: string,
+  category: ConnectionMissionCategory
+): ConnectionMission {
+  return {
+    id,
+    prompt,
+    category
   };
 }
 
@@ -50,6 +68,10 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
     hostPrompts: [
       mission("Invite guests to share quick birthday wishes before the raffle.", "Kindness"),
       mission("Ask the room to point out one hidden helper who made the celebration happen.", "Kindness")
+    ],
+    connectionMissions: [
+      connectionMission("birthday-other-table", "Meet someone from another table.", "Meet Someone New"),
+      connectionMission("birthday-appreciation", "Share one specific thing you appreciate about the birthday person.", "Kindness Challenge")
     ]
   },
   School: {
@@ -69,6 +91,10 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
     hostPrompts: [
       mission("Invite guests to recognize a teacher, student, or volunteer by name.", "Kindness"),
       mission("Ask each table to choose one word for the school year.", "Community")
+    ],
+    connectionMissions: [
+      connectionMission("school-similar-goals", "Find a student with similar goals.", "Shared Interests"),
+      connectionMission("school-study-tip", "Ask someone for one study or organization tip.", "Story Exchange")
     ]
   },
   Church: {
@@ -88,6 +114,33 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
     hostPrompts: [
       mission("Invite a short gratitude moment for volunteers and helpers.", "Kindness"),
       mission("Ask the room to greet someone outside their usual circle.", "Community")
+    ],
+    connectionMissions: [
+      connectionMission("church-first-time", "Welcome a first-time attendee.", "Community Builder"),
+      connectionMission("church-joy-week", "Ask someone what brought them joy this week.", "Story Exchange")
+    ]
+  },
+  Corporate: {
+    type: "Corporate",
+    suggestedMissions: [
+      mission("Meet someone from another department.", "Community"),
+      mission("Ask a teammate what makes their workday easier.", "Team Building")
+    ],
+    icebreakers: [
+      mission("Find someone who starts their morning the same way you do.", "Icebreaker"),
+      mission("Ask someone for one non-work skill they are proud of.", "Icebreaker")
+    ],
+    participationActivities: [
+      mission("Introduce two coworkers who should collaborate more often.", "Team Building"),
+      mission("Thank someone whose work helps your team succeed.", "Kindness")
+    ],
+    hostPrompts: [
+      mission("Ask teams to name one win from the last month.", "Team Building"),
+      mission("Invite people to shout out a behind-the-scenes teammate.", "Kindness")
+    ],
+    connectionMissions: [
+      connectionMission("corporate-other-department", "Meet someone from another department.", "Team Connector"),
+      connectionMission("corporate-shared-goal", "Find someone working toward a similar goal.", "Shared Interests")
     ]
   },
   "Team Building": {
@@ -107,6 +160,10 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
     hostPrompts: [
       mission("Ask teams to name one win from the last month.", "Team Building"),
       mission("Invite people to shout out a behind-the-scenes teammate.", "Kindness")
+    ],
+    connectionMissions: [
+      connectionMission("team-other-role", "Meet someone whose role supports yours in a way you did not know.", "Team Connector"),
+      connectionMission("team-collab-intro", "Introduce two teammates who should collaborate more often.", "Community Builder")
     ]
   },
   "Community Event": {
@@ -126,6 +183,10 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
     hostPrompts: [
       mission("Invite guests to thank a volunteer or organizer.", "Kindness"),
       mission("Ask the room to name one thing they love about this community.", "Community")
+    ],
+    connectionMissions: [
+      connectionMission("community-new-neighbor", "Meet someone from a different street, group, or neighborhood.", "Meet Someone New"),
+      connectionMission("community-welcome", "Welcome someone attending for the first time.", "Community Builder")
     ]
   },
   Conference: {
@@ -145,6 +206,10 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
     hostPrompts: [
       mission("Ask attendees to share one takeaway with someone beside them.", "Community"),
       mission("Invite the room to recognize sponsors, speakers, or volunteers.", "Kindness")
+    ],
+    connectionMissions: [
+      connectionMission("conference-different-org", "Meet someone from a different organization or industry.", "Meet Someone New"),
+      connectionMission("conference-overlap-goals", "Introduce two attendees who have overlapping goals.", "Community Builder")
     ]
   },
   "Family Reunion": {
@@ -164,6 +229,10 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
     hostPrompts: [
       mission("Invite guests to honor the people who kept the family connected.", "Kindness"),
       mission("Ask each table to share one family tradition worth continuing.", "Family")
+    ],
+    connectionMissions: [
+      connectionMission("family-story", "Ask a relative for a family story you have never heard.", "Story Exchange"),
+      connectionMission("family-generations", "Introduce someone from a younger generation to an elder.", "Community Builder")
     ]
   },
   "Friendship Gathering": {
@@ -183,6 +252,10 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
     hostPrompts: [
       mission("Invite guests to thank someone who made the gathering warmer.", "Kindness"),
       mission("Ask everyone to meet one person outside their usual circle before the raffle.", "Community")
+    ],
+    connectionMissions: [
+      connectionMission("friends-introduce-two", "Introduce two friends who have not had a real conversation yet.", "Community Builder"),
+      connectionMission("friends-compliment", "Give someone a specific compliment they can take home.", "Kindness Challenge")
     ]
   }
 };
@@ -206,4 +279,10 @@ export function getEventTemplateMissions(eventType: EventType): MissionInput[] {
     ...template.participationActivities,
     ...template.hostPrompts
   ];
+}
+
+export function getEventTemplateConnectionMissions(
+  eventType: EventType
+): ConnectionMission[] {
+  return getEventTemplate(eventType).connectionMissions;
 }

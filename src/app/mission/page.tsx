@@ -21,6 +21,7 @@ import {
   getMatchSuggestion
 } from "@/lib/connection-engine";
 import type {
+  ConnectionMission,
   ConnectionRecord,
   MatchSuggestion
 } from "@/lib/connection-engine";
@@ -30,6 +31,7 @@ import {
 } from "@/lib/supabase-missions";
 import type { GuestMission } from "@/lib/supabase-missions";
 import { useEventSettings } from "@/lib/use-event-settings";
+import { getEventTemplateConnectionMissions } from "@/lib/event-templates";
 
 export default function MissionPage() {
   const { settings } = useEventSettings();
@@ -45,6 +47,8 @@ export default function MissionPage() {
     connectionMissions[0].id
   );
   const [metGuestId, setMetGuestId] = useState("");
+  const [personFirstName, setPersonFirstName] = useState("");
+  const [reflection, setReflection] = useState("");
   const [connectionMessage, setConnectionMessage] = useState("");
   const [message, setMessage] = useState("Loading your mission...");
   const [isCompleting, setIsCompleting] = useState(false);
@@ -134,6 +138,14 @@ export default function MissionPage() {
       )
     : undefined;
   const otherGuests = guests.filter((nextGuest) => nextGuest.id !== guest?.id);
+  const availableConnectionMissions = getUniqueConnectionMissions([
+    ...getEventTemplateConnectionMissions(settings.eventType),
+    ...connectionMissions
+  ]);
+  const selectedConnectionMission =
+    availableConnectionMissions.find(
+      (mission) => mission.id === selectedMissionId
+    ) ?? availableConnectionMissions[0];
 
   function handlePhotoProof(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -159,9 +171,13 @@ export default function MissionPage() {
     await createConnectionRecord({
       guestId: guest.id,
       metGuestId: metGuestId || undefined,
-      missionId: selectedMissionId
+      personFirstName,
+      missionId: selectedConnectionMission.id,
+      reflection
     });
     setConnectionRecords(await fetchConnectionRecords());
+    setPersonFirstName("");
+    setReflection("");
     setConnectionMessage("Connection logged. Keep the conversation moving.");
   }
 
@@ -268,6 +284,15 @@ export default function MissionPage() {
           )}
 
           <div className="mt-5 space-y-4">
+            <div className="rounded-md border border-gold/25 bg-stone-950/70 p-4">
+              <p className="text-xs font-bold uppercase text-gold">
+                {selectedConnectionMission.category}
+              </p>
+              <p className="mt-2 text-xl font-black leading-tight text-champagne">
+                {selectedConnectionMission.prompt}
+              </p>
+            </div>
+
             <label className="block">
               <span className="text-sm font-medium text-stone-200">
                 Guided mission
@@ -277,30 +302,60 @@ export default function MissionPage() {
                 onChange={(event) => setSelectedMissionId(event.target.value)}
                 className="mt-2 min-h-12 w-full rounded-md border border-stone-700 bg-charcoal px-4 text-base text-champagne outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30"
               >
-                {connectionMissions.map((mission) => (
-                  <option key={mission.id} value={mission.id}>
-                    {mission.prompt}
-                  </option>
+                {getMissionGroups(availableConnectionMissions).map((group) => (
+                  <optgroup key={group.category} label={group.category}>
+                    {group.missions.map((mission) => (
+                      <option key={mission.id} value={mission.id}>
+                        {mission.prompt}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </label>
 
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="text-sm font-medium text-stone-200">
+                  Person's first name
+                </span>
+                <input
+                  value={personFirstName}
+                  onChange={(event) => setPersonFirstName(event.target.value)}
+                  placeholder="Optional"
+                  className="mt-2 min-h-12 w-full rounded-md border border-stone-700 bg-charcoal px-4 text-base text-champagne outline-none transition placeholder:text-stone-500 focus:border-gold focus:ring-2 focus:ring-gold/30"
+                />
+              </label>
+              <label className="block">
+                <span className="text-sm font-medium text-stone-200">
+                  Registered guest
+                </span>
+                <select
+                  value={metGuestId}
+                  onChange={(event) => setMetGuestId(event.target.value)}
+                  className="mt-2 min-h-12 w-full rounded-md border border-stone-700 bg-charcoal px-4 text-base text-champagne outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30"
+                >
+                  <option value="">Someone new</option>
+                  {otherGuests.map((nextGuest) => (
+                    <option key={nextGuest.id} value={nextGuest.id}>
+                      {nextGuest.firstName || nextGuest.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
             <label className="block">
               <span className="text-sm font-medium text-stone-200">
-                Person you met
+                Short reflection
               </span>
-              <select
-                value={metGuestId}
-                onChange={(event) => setMetGuestId(event.target.value)}
-                className="mt-2 min-h-12 w-full rounded-md border border-stone-700 bg-charcoal px-4 text-base text-champagne outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30"
-              >
-                <option value="">Someone new</option>
-                {otherGuests.map((nextGuest) => (
-                  <option key={nextGuest.id} value={nextGuest.id}>
-                    {nextGuest.firstName || nextGuest.name}
-                  </option>
-                ))}
-              </select>
+              <textarea
+                value={reflection}
+                onChange={(event) => setReflection(event.target.value)}
+                rows={3}
+                placeholder="Optional"
+                className="mt-2 w-full rounded-md border border-stone-700 bg-charcoal px-4 py-3 text-base text-champagne outline-none transition placeholder:text-stone-500 focus:border-gold focus:ring-2 focus:ring-gold/30"
+              />
             </label>
 
             <button
@@ -344,6 +399,32 @@ export default function MissionPage() {
       </div>
     </ExperienceShell>
   );
+}
+
+function getUniqueConnectionMissions(missions: ConnectionMission[]) {
+  return missions.filter(
+    (mission, index) =>
+      missions.findIndex((nextMission) => nextMission.id === mission.id) === index
+  );
+}
+
+function getMissionGroups(missions: ConnectionMission[]) {
+  return missions.reduce<Array<{
+    category: ConnectionMission["category"];
+    missions: ConnectionMission[];
+  }>>((groups, mission) => {
+    const group = groups.find(
+      (nextGroup) => nextGroup.category === mission.category
+    );
+
+    if (group) {
+      group.missions.push(mission);
+    } else {
+      groups.push({ category: mission.category, missions: [mission] });
+    }
+
+    return groups;
+  }, []);
 }
 
 function ConnectionStat({

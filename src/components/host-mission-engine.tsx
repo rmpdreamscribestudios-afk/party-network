@@ -23,6 +23,7 @@ import {
 import type {
   Mission,
   MissionCategory,
+  MissionInput,
   MissionRoundStats
 } from "@/lib/supabase-missions";
 import {
@@ -30,6 +31,9 @@ import {
   getEventTemplateMissions,
   type EventType
 } from "@/lib/event-templates";
+
+type MissionSeed = Pick<MissionInput, "prompt" | "category"> &
+  Partial<Pick<MissionInput, "isTemplate">>;
 
 type HostMissionEngineProps = Readonly<{
   guests: PartyGuest[];
@@ -199,7 +203,7 @@ export function HostMissionEngine({ guests, eventType }: HostMissionEngineProps)
     setSaveAsTemplate(false);
   }
 
-  function applyExample(example: (typeof missionExamples)[number]) {
+  function applyExample(example: MissionSeed) {
     setEditingMissionId(undefined);
     setPrompt(example.prompt);
     setCategory(example.category);
@@ -333,6 +337,11 @@ export function HostMissionEngine({ guests, eventType }: HostMissionEngineProps)
               <TemplateList
                 title="Host Prompts"
                 items={eventTemplate.hostPrompts}
+                onApply={applyExample}
+              />
+              <TemplateList
+                title="Connection Missions"
+                items={eventTemplate.connectionMissions}
                 onApply={applyExample}
               />
             </div>
@@ -524,8 +533,8 @@ function TemplateList({
   onApply
 }: Readonly<{
   title: string;
-  items: MissionInput[];
-  onApply: (mission: MissionInput) => void;
+  items: MissionSeed[];
+  onApply: (mission: MissionSeed) => void;
 }>) {
   return (
     <div className="rounded-md border border-stone-800 bg-black/35 p-3">

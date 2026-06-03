@@ -46,7 +46,9 @@ export default function HostPage() {
     participationRate: 0,
     mostCompletedMission: "Pending",
     missionsCompleted: 0,
-    newPeopleMet: 0
+    newPeopleMet: 0,
+    activeParticipants: 0,
+    topMissionCategories: []
   });
   const [raffleState, setRaffleState] = useState<RaffleState>({
     prizeRevealed: false,
@@ -336,6 +338,14 @@ export default function HostPage() {
               {connectionStats.participationRate}%
             </p>
           </div>
+          <div className="rounded-md border border-gold/30 bg-black/45 p-5">
+            <p className="text-sm uppercase text-stone-400">
+              Active Participants
+            </p>
+            <p className="mt-2 text-5xl font-black text-gold">
+              {connectionStats.activeParticipants}
+            </p>
+          </div>
           <div className="rounded-md border border-gold/30 bg-black/45 p-5 md:col-span-2">
             <p className="text-sm uppercase text-stone-400">
               Most Completed Mission
@@ -343,6 +353,30 @@ export default function HostPage() {
             <p className="mt-2 text-2xl font-black leading-tight text-gold">
               {connectionStats.mostCompletedMission}
             </p>
+          </div>
+          <div className="rounded-md border border-gold/30 bg-black/45 p-5 md:col-span-1">
+            <p className="text-sm uppercase text-stone-400">
+              Top Mission Categories
+            </p>
+            <div className="mt-3 space-y-2">
+              {connectionStats.topMissionCategories.length ? (
+                connectionStats.topMissionCategories.map((item) => (
+                  <div
+                    key={item.category}
+                    className="flex items-center justify-between gap-3 rounded-md border border-stone-800 bg-stone-950/70 px-3 py-2"
+                  >
+                    <span className="text-sm font-bold text-champagne">
+                      {item.category}
+                    </span>
+                    <span className="text-lg font-black text-gold">
+                      {item.count}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm font-semibold text-stone-300">Pending</p>
+              )}
+            </div>
           </div>
 
           <div className="rounded-md border border-gold/30 bg-black/45 p-5">

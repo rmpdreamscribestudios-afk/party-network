@@ -13,6 +13,12 @@ import {
   subscribeToGuestChanges
 } from "@/lib/supabase-guests";
 import {
+  fetchConnectionRecords,
+  getConnectionStats,
+  subscribeToConnectionChanges
+} from "@/lib/connection-engine";
+import type { ConnectionStats } from "@/lib/connection-engine";
+import {
   fetchActiveMissionRoundStats,
   getMissionRoundTimeLeft,
   subscribeToMissionChanges
@@ -27,6 +33,16 @@ const emptyMissionStats: MissionRoundStats = {
   completionPercentage: 0
 };
 
+const emptyConnectionStats: ConnectionStats = {
+  connectionsCreated: 0,
+  participationRate: 0,
+  mostCompletedMission: "Pending",
+  missionsCompleted: 0,
+  newPeopleMet: 0,
+  activeParticipants: 0,
+  topMissionCategories: []
+};
+
 export default function LivePage() {
   const { settings } = useEventSettings();
   const [guests, setGuests] = useState<PartyGuest[]>([]);
@@ -34,15 +50,21 @@ export default function LivePage() {
   const [prizeName, setPrizeName] = useState("Awaiting reveal");
   const [missionStats, setMissionStats] =
     useState<MissionRoundStats>(emptyMissionStats);
+  const [connectionStats, setConnectionStats] =
+    useState<ConnectionStats>(emptyConnectionStats);
   const [missionTimeLeft, setMissionTimeLeft] = useState("--:--");
   const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
     const syncGuests = async () => {
       try {
-        const nextGuests = await fetchGuests();
+        const [nextGuests, nextConnectionRecords] = await Promise.all([
+          fetchGuests(),
+          fetchConnectionRecords()
+        ]);
         const state = readRaffleState();
         setGuests(nextGuests);
+        setConnectionStats(getConnectionStats(nextGuests, nextConnectionRecords));
         setWinnerName(
           nextGuests.find((guest) => guest.id === state.winnerId)?.name ?? "Pending"
         );
@@ -60,13 +82,15 @@ export default function LivePage() {
     };
 
     syncGuests();
-    const channel = subscribeToGuestChanges(syncGuests);
+    const guestChannel = subscribeToGuestChanges(syncGuests);
+    const connectionChannel = subscribeToConnectionChanges(syncGuests);
     const pollingId = window.setInterval(syncGuests, 5000);
     window.addEventListener("storage", syncGuests);
     window.addEventListener(PARTY_EVENT_UPDATE, syncGuests);
 
     return () => {
-      channel?.unsubscribe();
+      guestChannel?.unsubscribe();
+      connectionChannel?.unsubscribe();
       window.clearInterval(pollingId);
       window.removeEventListener("storage", syncGuests);
       window.removeEventListener(PARTY_EVENT_UPDATE, syncGuests);
@@ -158,12 +182,24 @@ export default function LivePage() {
         </div>
 
         <footer className="grid gap-4 border-t border-gold/20 pt-6 md:grid-cols-[1fr_auto] md:items-end">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-5">
             <div>
               <p className="text-3xl font-black text-gold md:text-6xl">
-                {guests.length.toString().padStart(2, "0")}
+                {connectionStats.connectionsCreated.toString().padStart(2, "0")}
               </p>
-              <p className="text-xl text-stone-300">People connected</p>
+              <p className="text-xl text-stone-300">Total connections made</p>
+            </div>
+            <div>
+              <p className="text-3xl font-black text-gold md:text-6xl">
+                {connectionStats.activeParticipants.toString().padStart(2, "0")}
+              </p>
+              <p className="text-xl text-stone-300">Active participants</p>
+            </div>
+            <div>
+              <p className="text-3xl font-black text-gold md:text-6xl">
+                {connectionStats.missionsCompleted.toString().padStart(2, "0")}
+              </p>
+              <p className="text-xl text-stone-300">Completed missions</p>
             </div>
             <div>
               <p className="break-words text-3xl font-black text-gold md:text-5xl">

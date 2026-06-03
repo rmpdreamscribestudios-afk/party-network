@@ -9,14 +9,25 @@ import { isSupabaseConfigured, supabase } from "@/lib/supabase-guests";
 
 export type ConnectionMission = {
   id: string;
+  category: ConnectionMissionCategory;
   prompt: string;
 };
+
+export type ConnectionMissionCategory =
+  | "Meet Someone New"
+  | "Shared Interests"
+  | "Story Exchange"
+  | "Kindness Challenge"
+  | "Community Builder"
+  | "Team Connector";
 
 export type ConnectionRecord = {
   id: string;
   guestId: string;
   metGuestId?: string;
+  personFirstName?: string;
   missionId: string;
+  reflection?: string;
   createdAt: string;
 };
 
@@ -31,29 +42,85 @@ export type ConnectionStats = {
   mostCompletedMission: string;
   missionsCompleted: number;
   newPeopleMet: number;
+  activeParticipants: number;
+  topMissionCategories: Array<{
+    category: ConnectionMissionCategory;
+    count: number;
+  }>;
 };
 
 type ConnectionRecordRow = {
   id: string;
   guest_id: string;
   met_guest_id: string | null;
+  person_first_name?: string | null;
   mission_id: string;
+  reflection?: string | null;
   created_at: string;
 };
 
 export const PARTY_CONNECTIONS_KEY = "party-network-connections";
 
 export const connectionMissions: ConnectionMission[] = [
-  { id: "shared-hobby", prompt: "Find someone who shares your hobby." },
-  { id: "another-group", prompt: "Meet someone from another group." },
-  { id: "learn-new", prompt: "Learn one thing about someone new." },
   {
-    id: "visited-country",
-    prompt: "Find someone who has visited another country."
+    id: "introduce-new",
+    category: "Meet Someone New",
+    prompt: "Introduce yourself to someone you haven't met."
+  },
+  {
+    id: "learn-hometown",
+    category: "Meet Someone New",
+    prompt: "Learn their hometown."
+  },
+  {
+    id: "shared-hobby",
+    category: "Shared Interests",
+    prompt: "Find someone who enjoys the same hobby."
   },
   {
     id: "same-food",
-    prompt: "Find someone with the same favorite food."
+    category: "Shared Interests",
+    prompt: "Find someone who likes the same food."
+  },
+  {
+    id: "memorable-moment",
+    category: "Story Exchange",
+    prompt: "Ask someone about a memorable life moment."
+  },
+  {
+    id: "lesson-earlier",
+    category: "Story Exchange",
+    prompt: "Learn one lesson they wish they knew earlier."
+  },
+  {
+    id: "genuine-compliment",
+    category: "Kindness Challenge",
+    prompt: "Give a genuine compliment."
+  },
+  {
+    id: "thank-someone",
+    category: "Kindness Challenge",
+    prompt: "Thank someone for something they do."
+  },
+  {
+    id: "introduce-two-people",
+    category: "Community Builder",
+    prompt: "Introduce two people who don't know each other."
+  },
+  {
+    id: "welcome-newcomer",
+    category: "Community Builder",
+    prompt: "Welcome a newcomer."
+  },
+  {
+    id: "team-role",
+    category: "Team Connector",
+    prompt: "Meet someone whose role or strengths are different from yours."
+  },
+  {
+    id: "team-goal",
+    category: "Team Connector",
+    prompt: "Find someone who can help with a shared team goal."
   }
 ];
 
@@ -83,7 +150,9 @@ function mapConnectionRecord(row: ConnectionRecordRow): ConnectionRecord {
     id: row.id,
     guestId: row.guest_id,
     metGuestId: row.met_guest_id ?? undefined,
+    personFirstName: row.person_first_name ?? undefined,
     missionId: row.mission_id,
+    reflection: row.reflection ?? undefined,
     createdAt: row.created_at
   };
 }
@@ -115,14 +184,18 @@ export function writeConnectionRecords(records: ConnectionRecord[]) {
 export function addConnectionRecord(input: {
   guestId: string;
   metGuestId?: string;
+  personFirstName?: string;
   missionId: string;
+  reflection?: string;
 }) {
   writeConnectionRecords([
     {
       id: createConnectionId(),
       guestId: input.guestId,
       metGuestId: input.metGuestId,
+      personFirstName: input.personFirstName?.trim() || undefined,
       missionId: input.missionId,
+      reflection: input.reflection?.trim() || undefined,
       createdAt: new Date().toISOString()
     },
     ...readConnectionRecords()
@@ -137,11 +210,22 @@ export async function fetchConnectionRecords(): Promise<ConnectionRecord[]> {
   try {
     const { data, error } = await supabase
       .from("connection_records")
-      .select("id, guest_id, met_guest_id, mission_id, created_at")
+      .select(
+        "id, guest_id, met_guest_id, person_first_name, mission_id, reflection, created_at"
+      )
       .order("created_at", { ascending: false });
 
     if (error) {
-      return readConnectionRecords();
+      const { data: legacyData, error: legacyError } = await supabase
+        .from("connection_records")
+        .select("id, guest_id, met_guest_id, mission_id, created_at")
+        .order("created_at", { ascending: false });
+
+      if (legacyError) {
+        return readConnectionRecords();
+      }
+
+      return (legacyData ?? []).map(mapConnectionRecord);
     }
 
     return (data ?? []).map(mapConnectionRecord);
@@ -153,7 +237,9 @@ export async function fetchConnectionRecords(): Promise<ConnectionRecord[]> {
 export async function createConnectionRecord(input: {
   guestId: string;
   metGuestId?: string;
+  personFirstName?: string;
   missionId: string;
+  reflection?: string;
 }) {
   if (!supabase) {
     addConnectionRecord(input);
@@ -161,14 +247,25 @@ export async function createConnectionRecord(input: {
   }
 
   try {
-    const { error } = await supabase.from("connection_records").insert({
+    const payload = {
       guest_id: input.guestId,
       met_guest_id: input.metGuestId || null,
-      mission_id: input.missionId
-    });
+      person_first_name: input.personFirstName?.trim() || null,
+      mission_id: input.missionId,
+      reflection: input.reflection?.trim() || null
+    };
+    const { error } = await supabase.from("connection_records").insert(payload);
 
     if (error) {
-      addConnectionRecord(input);
+      const { error: legacyError } = await supabase.from("connection_records").insert({
+        guest_id: input.guestId,
+        met_guest_id: input.metGuestId || null,
+        mission_id: input.missionId
+      });
+
+      if (legacyError) {
+        addConnectionRecord(input);
+      }
     }
   } catch {
     addConnectionRecord(input);
@@ -255,12 +352,24 @@ export function getConnectionStats(
     )
   ).size;
   const missionCounts = new Map<string, number>();
+  const categoryCounts = new Map<ConnectionMissionCategory, number>();
 
   records.forEach((record) => {
     missionCounts.set(
       record.missionId,
       (missionCounts.get(record.missionId) ?? 0) + 1
     );
+
+    const mission = connectionMissions.find(
+      (nextMission) => nextMission.id === record.missionId
+    );
+
+    if (mission) {
+      categoryCounts.set(
+        mission.category,
+        (categoryCounts.get(mission.category) ?? 0) + 1
+      );
+    }
   });
 
   const mostCompletedMissionId = [...missionCounts.entries()].sort(
@@ -277,7 +386,12 @@ export function getConnectionStats(
       : 0,
     mostCompletedMission,
     missionsCompleted: records.length,
-    newPeopleMet
+    newPeopleMet,
+    activeParticipants: participantIds.size,
+    topMissionCategories: [...categoryCounts.entries()]
+      .sort((first, second) => second[1] - first[1])
+      .slice(0, 4)
+      .map(([category, count]) => ({ category, count }))
   };
 }
 
