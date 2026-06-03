@@ -12,13 +12,29 @@ import {
   fetchGuests,
   subscribeToGuestChanges
 } from "@/lib/supabase-guests";
+import {
+  fetchActiveMissionRoundStats,
+  getMissionRoundTimeLeft,
+  subscribeToMissionChanges
+} from "@/lib/supabase-missions";
+import type { MissionRoundStats } from "@/lib/supabase-missions";
 import { useEventSettings } from "@/lib/use-event-settings";
+
+const emptyMissionStats: MissionRoundStats = {
+  totalGuests: 0,
+  assigned: 0,
+  completed: 0,
+  completionPercentage: 0
+};
 
 export default function LivePage() {
   const { settings } = useEventSettings();
   const [guests, setGuests] = useState<PartyGuest[]>([]);
   const [winnerName, setWinnerName] = useState("Pending");
   const [prizeName, setPrizeName] = useState("Awaiting reveal");
+  const [missionStats, setMissionStats] =
+    useState<MissionRoundStats>(emptyMissionStats);
+  const [missionTimeLeft, setMissionTimeLeft] = useState("--:--");
   const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
@@ -56,6 +72,37 @@ export default function LivePage() {
       window.removeEventListener(PARTY_EVENT_UPDATE, syncGuests);
     };
   }, []);
+
+  useEffect(() => {
+    const syncMissions = async () => {
+      try {
+        const nextStats = await fetchActiveMissionRoundStats();
+        setMissionStats(nextStats);
+        setMissionTimeLeft(getMissionRoundTimeLeft(nextStats.round));
+      } catch {
+        setMissionStats(emptyMissionStats);
+      }
+    };
+
+    syncMissions();
+    const channel = subscribeToMissionChanges(syncMissions);
+    const pollingId = window.setInterval(syncMissions, 5000);
+
+    return () => {
+      channel?.unsubscribe();
+      window.clearInterval(pollingId);
+    };
+  }, []);
+
+  useEffect(() => {
+    const tickId = window.setInterval(() => {
+      setMissionTimeLeft(getMissionRoundTimeLeft(missionStats.round));
+    }, 1000);
+
+    return () => {
+      window.clearInterval(tickId);
+    };
+  }, [missionStats.round]);
 
   const displayGuests = statusMessage
     ? []
@@ -129,9 +176,34 @@ export default function LivePage() {
               <p className="text-xl text-stone-300">Prize board</p>
             </div>
           </div>
-          <p className="countdown-pulse text-4xl font-black text-champagne md:text-7xl">
-            DRAW SOON
-          </p>
+          <div className="rounded-md border border-gold/30 bg-black/40 p-5 text-right backdrop-blur">
+            <p className="text-lg font-bold uppercase text-gold">
+              {missionStats.round ? "Mission Round Live" : "Mission Round"}
+            </p>
+            <p className="countdown-pulse mt-2 text-4xl font-black text-champagne md:text-7xl">
+              {missionStats.round ? missionTimeLeft : "READY"}
+            </p>
+            <div className="mt-3 grid grid-cols-3 gap-3 text-center">
+              <div>
+                <p className="text-2xl font-black text-gold">
+                  {missionStats.assigned}
+                </p>
+                <p className="text-sm text-stone-300">Assigned</p>
+              </div>
+              <div>
+                <p className="text-2xl font-black text-gold">
+                  {missionStats.completed}
+                </p>
+                <p className="text-sm text-stone-300">Done</p>
+              </div>
+              <div>
+                <p className="text-2xl font-black text-gold">
+                  {missionStats.completionPercentage}%
+                </p>
+                <p className="text-sm text-stone-300">Complete</p>
+              </div>
+            </div>
+          </div>
         </footer>
       </section>
     </main>

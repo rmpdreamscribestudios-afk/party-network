@@ -18,7 +18,7 @@ Guests scan a QR code, join the event, receive a luck score, and enter a shared 
 - `/grand-prize` - final grand prize reveal
 - `/message` - host message screen
 
-Guest registrations, event settings, missions, mission assignments, and mission completions are stored in Supabase so every phone sees the same event list, event title, and mission round. Raffle reveal state still uses browser event state for the host flow.
+Guest registrations, event settings, missions, mission rounds, and mission assignments are stored in Supabase so every phone sees the same event list, event title, active mission round, timer, and completion stats. Raffle reveal state still uses browser event state for the host flow.
 
 ## Local Development
 
@@ -89,25 +89,39 @@ insert into public.event_settings (
 create table public.missions (
   id uuid primary key default gen_random_uuid(),
   prompt text not null check (char_length(trim(prompt)) > 0),
+  category text not null default 'Icebreaker' check (
+    category in (
+      'Icebreaker',
+      'Friendship',
+      'Family',
+      'Team Building',
+      'Community',
+      'Kindness'
+    )
+  ),
   is_active boolean not null default true,
+  is_template boolean not null default false,
+  updated_at timestamptz,
   created_at timestamptz not null default now()
+);
+
+create table public.mission_rounds (
+  id uuid primary key default gen_random_uuid(),
+  started_at timestamptz not null default now(),
+  ends_at timestamptz not null,
+  duration_minutes integer not null check (duration_minutes in (5, 10, 15)),
+  status text not null default 'active' check (status in ('active', 'completed'))
 );
 
 create table public.guest_missions (
   id uuid primary key default gen_random_uuid(),
   guest_id uuid not null references public.guests(id) on delete cascade,
   mission_id uuid not null references public.missions(id) on delete cascade,
-  round_id uuid not null,
+  round_id uuid not null references public.mission_rounds(id) on delete cascade,
   assigned_at timestamptz not null default now(),
-  completed_at timestamptz
-);
-
-create table public.mission_completions (
-  id uuid primary key default gen_random_uuid(),
-  guest_mission_id uuid not null unique references public.guest_missions(id) on delete cascade,
-  guest_id uuid not null references public.guests(id) on delete cascade,
-  mission_id uuid not null references public.missions(id) on delete cascade,
-  completed_at timestamptz not null default now()
+  completed_at timestamptz,
+  notes text,
+  photo_proof_url text
 );
 
 create index guest_missions_guest_assigned_idx
@@ -115,20 +129,24 @@ create index guest_missions_guest_assigned_idx
 
 create index guest_missions_round_idx
   on public.guest_missions (round_id);
+
+create index mission_rounds_active_idx
+  on public.mission_rounds (status, started_at desc);
 ```
 
 8. Seed starter missions:
 
 ```sql
-insert into public.missions (prompt) values
-  ('Meet someone from another table.'),
-  ('Find someone wearing blue.'),
-  ('Learn one new thing about a guest.'),
-  ('Give someone a kind compliment.'),
-  ('Take a group photo with someone new.');
+insert into public.missions (prompt, category, is_template) values
+  ('Meet someone from another table and learn what brought them here.', 'Icebreaker', true),
+  ('Find a guest you have not spoken to yet and trade favorite snacks.', 'Friendship', true),
+  ('Ask someone for a family tradition they actually enjoy.', 'Family', true),
+  ('Form a tiny team of three and invent a party cheer.', 'Team Building', true),
+  ('Introduce two guests who should know each other.', 'Community', true),
+  ('Give someone a specific, genuine compliment.', 'Kindness', true);
 ```
 
-9. Enable Realtime for the `missions`, `guest_missions`, and `mission_completions` tables in Supabase under **Database > Replication**.
+9. Enable Realtime for the `missions`, `mission_rounds`, and `guest_missions` tables in Supabase under **Database > Replication**.
 10. In **Project Settings > API**, copy the project URL and anon public key.
 11. Add these environment variables in Vercel under **Settings > Environment Variables**:
 
