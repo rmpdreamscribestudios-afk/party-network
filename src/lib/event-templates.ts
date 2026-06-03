@@ -10,18 +10,19 @@ export const eventTypes = [
   "Birthday",
   "School",
   "Church",
-  "Corporate",
   "Team Building",
   "Community Event",
-  "Conference",
-  "Family Reunion",
-  "Friendship Gathering"
+  "Family Gathering",
+  "Friendship Gathering",
+  "Conference"
 ] as const;
 
 export type EventType = (typeof eventTypes)[number];
 
 export type EventTemplate = {
   type: EventType;
+  suggestedTitle: string;
+  suggestedDescription: string;
   suggestedMissions: MissionInput[];
   icebreakers: MissionInput[];
   participationActivities: MissionInput[];
@@ -53,9 +54,12 @@ function connectionMission(
 export const eventTemplates: Record<EventType, EventTemplate> = {
   Birthday: {
     type: "Birthday",
+    suggestedTitle: "Birthday Celebration",
+    suggestedDescription:
+      "A warm celebration that helps guests meet across tables, share memories, and make the guest of honor feel seen.",
     suggestedMissions: [
-      mission("Find someone who has known the birthday person for a different length of time than you.", "Friendship"),
-      mission("Share one specific thing you appreciate about the birthday person.", "Kindness")
+      mission("Meet someone from another table.", "Friendship"),
+      mission("Share a birthday memory.", "Kindness")
     ],
     icebreakers: [
       mission("Ask someone for their favorite birthday memory.", "Icebreaker"),
@@ -71,14 +75,17 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
     ],
     connectionMissions: [
       connectionMission("birthday-other-table", "Meet someone from another table.", "Meet Someone New"),
-      connectionMission("birthday-appreciation", "Share one specific thing you appreciate about the birthday person.", "Kindness Challenge")
+      connectionMission("birthday-memory", "Share a birthday memory.", "Story Exchange")
     ]
   },
   School: {
     type: "School",
+    suggestedTitle: "School Community Mixer",
+    suggestedDescription:
+      "A student-friendly experience for meeting across grades, sharing goals, and making the school community feel more connected.",
     suggestedMissions: [
-      mission("Meet someone from a different class, grade, or program.", "Community"),
-      mission("Find someone who can teach you one study or organization tip.", "Team Building")
+      mission("Meet someone from another grade.", "Community"),
+      mission("Learn one future goal.", "Team Building")
     ],
     icebreakers: [
       mission("Ask someone which subject or activity they enjoy most.", "Icebreaker"),
@@ -93,15 +100,18 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
       mission("Ask each table to choose one word for the school year.", "Community")
     ],
     connectionMissions: [
-      connectionMission("school-similar-goals", "Find a student with similar goals.", "Shared Interests"),
-      connectionMission("school-study-tip", "Ask someone for one study or organization tip.", "Story Exchange")
+      connectionMission("school-other-grade", "Meet someone from another grade.", "Meet Someone New"),
+      connectionMission("school-future-goal", "Learn one future goal.", "Story Exchange")
     ]
   },
   Church: {
     type: "Church",
+    suggestedTitle: "Church Community Gathering",
+    suggestedDescription:
+      "A welcoming gathering that helps attendees connect across groups, greet newer people, and share gratitude.",
     suggestedMissions: [
-      mission("Meet someone from a different ministry, group, or service time.", "Community"),
-      mission("Ask someone what brought them joy this week.", "Kindness")
+      mission("Welcome a new attendee.", "Community"),
+      mission("Share one thing you're grateful for.", "Kindness")
     ],
     icebreakers: [
       mission("Find someone who shares a favorite meal after service.", "Icebreaker"),
@@ -116,38 +126,18 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
       mission("Ask the room to greet someone outside their usual circle.", "Community")
     ],
     connectionMissions: [
-      connectionMission("church-first-time", "Welcome a first-time attendee.", "Community Builder"),
-      connectionMission("church-joy-week", "Ask someone what brought them joy this week.", "Story Exchange")
-    ]
-  },
-  Corporate: {
-    type: "Corporate",
-    suggestedMissions: [
-      mission("Meet someone from another department.", "Community"),
-      mission("Ask a teammate what makes their workday easier.", "Team Building")
-    ],
-    icebreakers: [
-      mission("Find someone who starts their morning the same way you do.", "Icebreaker"),
-      mission("Ask someone for one non-work skill they are proud of.", "Icebreaker")
-    ],
-    participationActivities: [
-      mission("Introduce two coworkers who should collaborate more often.", "Team Building"),
-      mission("Thank someone whose work helps your team succeed.", "Kindness")
-    ],
-    hostPrompts: [
-      mission("Ask teams to name one win from the last month.", "Team Building"),
-      mission("Invite people to shout out a behind-the-scenes teammate.", "Kindness")
-    ],
-    connectionMissions: [
-      connectionMission("corporate-other-department", "Meet someone from another department.", "Team Connector"),
-      connectionMission("corporate-shared-goal", "Find someone working toward a similar goal.", "Shared Interests")
+      connectionMission("church-new-attendee", "Welcome a new attendee.", "Community Builder"),
+      connectionMission("church-gratitude", "Share one thing you're grateful for.", "Story Exchange")
     ]
   },
   "Team Building": {
     type: "Team Building",
+    suggestedTitle: "Team Building Mixer",
+    suggestedDescription:
+      "A workplace-ready experience for cross-functional introductions, hidden talents, and practical team connection.",
     suggestedMissions: [
-      mission("Find someone whose role supports yours in a way you did not know.", "Team Building"),
-      mission("Ask a teammate what makes their workday easier.", "Team Building")
+      mission("Meet someone from another department.", "Team Building"),
+      mission("Learn one hidden talent.", "Team Building")
     ],
     icebreakers: [
       mission("Find someone who starts their morning the same way you do.", "Icebreaker"),
@@ -162,12 +152,15 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
       mission("Invite people to shout out a behind-the-scenes teammate.", "Kindness")
     ],
     connectionMissions: [
-      connectionMission("team-other-role", "Meet someone whose role supports yours in a way you did not know.", "Team Connector"),
-      connectionMission("team-collab-intro", "Introduce two teammates who should collaborate more often.", "Community Builder")
+      connectionMission("team-other-department", "Meet someone from another department.", "Team Connector"),
+      connectionMission("team-hidden-talent", "Learn one hidden talent.", "Story Exchange")
     ]
   },
   "Community Event": {
     type: "Community Event",
+    suggestedTitle: "Community Event Mixer",
+    suggestedDescription:
+      "A local gathering that helps neighbors, volunteers, and attendees meet new people and build shared momentum.",
     suggestedMissions: [
       mission("Meet someone from a different street, group, or neighborhood.", "Community"),
       mission("Ask someone what local place they recommend.", "Community")
@@ -189,31 +182,11 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
       connectionMission("community-welcome", "Welcome someone attending for the first time.", "Community Builder")
     ]
   },
-  Conference: {
-    type: "Conference",
-    suggestedMissions: [
-      mission("Meet someone from a different organization or industry.", "Community"),
-      mission("Ask someone what session or topic they are most excited about.", "Icebreaker")
-    ],
-    icebreakers: [
-      mission("Find someone who traveled from a different city.", "Icebreaker"),
-      mission("Ask someone for one tool, book, or idea they recommend.", "Icebreaker")
-    ],
-    participationActivities: [
-      mission("Introduce two attendees who have overlapping goals.", "Team Building"),
-      mission("Form a pair and trade one practical takeaway from today.", "Team Building")
-    ],
-    hostPrompts: [
-      mission("Ask attendees to share one takeaway with someone beside them.", "Community"),
-      mission("Invite the room to recognize sponsors, speakers, or volunteers.", "Kindness")
-    ],
-    connectionMissions: [
-      connectionMission("conference-different-org", "Meet someone from a different organization or industry.", "Meet Someone New"),
-      connectionMission("conference-overlap-goals", "Introduce two attendees who have overlapping goals.", "Community Builder")
-    ]
-  },
-  "Family Reunion": {
-    type: "Family Reunion",
+  "Family Gathering": {
+    type: "Family Gathering",
+    suggestedTitle: "Family Gathering",
+    suggestedDescription:
+      "A family-centered experience for sharing stories, connecting generations, and making the gathering feel personal.",
     suggestedMissions: [
       mission("Ask a relative for a family story you have never heard.", "Family"),
       mission("Find someone from another branch or generation of the family.", "Family")
@@ -237,6 +210,9 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
   },
   "Friendship Gathering": {
     type: "Friendship Gathering",
+    suggestedTitle: "Friendship Gathering",
+    suggestedDescription:
+      "A casual experience for helping friends mix beyond their usual circles, share recommendations, and create easy moments together.",
     suggestedMissions: [
       mission("Introduce two friends who have not had a real conversation yet.", "Friendship"),
       mission("Ask someone what they are looking forward to this season.", "Friendship")
@@ -257,6 +233,32 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
       connectionMission("friends-introduce-two", "Introduce two friends who have not had a real conversation yet.", "Community Builder"),
       connectionMission("friends-compliment", "Give someone a specific compliment they can take home.", "Kindness Challenge")
     ]
+  },
+  Conference: {
+    type: "Conference",
+    suggestedTitle: "Conference Networking Session",
+    suggestedDescription:
+      "A conference experience for meeting across organizations, exchanging useful ideas, and surfacing shared goals.",
+    suggestedMissions: [
+      mission("Meet someone from a different organization or industry.", "Community"),
+      mission("Ask someone what session or topic they are most excited about.", "Icebreaker")
+    ],
+    icebreakers: [
+      mission("Find someone who traveled from a different city.", "Icebreaker"),
+      mission("Ask someone for one tool, book, or idea they recommend.", "Icebreaker")
+    ],
+    participationActivities: [
+      mission("Introduce two attendees who have overlapping goals.", "Team Building"),
+      mission("Form a pair and trade one practical takeaway from today.", "Team Building")
+    ],
+    hostPrompts: [
+      mission("Ask attendees to share one takeaway with someone beside them.", "Community"),
+      mission("Invite the room to recognize sponsors, speakers, or volunteers.", "Kindness")
+    ],
+    connectionMissions: [
+      connectionMission("conference-different-org", "Meet someone from a different organization or industry.", "Meet Someone New"),
+      connectionMission("conference-overlap-goals", "Introduce two attendees who have overlapping goals.", "Community Builder")
+    ]
   }
 };
 
@@ -264,6 +266,25 @@ export const defaultEventType: EventType = "Birthday";
 
 export function isEventType(value?: string | null): value is EventType {
   return eventTypes.includes(value as EventType);
+}
+
+export function getSafeEventType(
+  value?: string | null,
+  fallback: EventType = defaultEventType
+): EventType {
+  if (isEventType(value)) {
+    return value;
+  }
+
+  if (value === "Corporate") {
+    return "Team Building";
+  }
+
+  if (value === "Family Reunion") {
+    return "Family Gathering";
+  }
+
+  return fallback;
 }
 
 export function getEventTemplate(eventType: EventType): EventTemplate {

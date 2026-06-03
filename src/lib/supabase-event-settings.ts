@@ -6,7 +6,7 @@ import { emitPartyUpdate } from "@/lib/party-storage";
 import {
   defaultEventType,
   type EventType,
-  isEventType
+  getSafeEventType
 } from "@/lib/event-templates";
 
 export type EventSettings = {
@@ -77,7 +77,7 @@ function mapEventSettings(row: EventSettingsRow): EventSettings {
     title: getSettingsValue(row.event_title, row.title),
     subtitle: getSettingsValue(row.event_subtitle, row.subtitle),
     date: row.event_date ?? row.date ?? undefined,
-    eventType: isEventType(rowEventType) ? rowEventType : localEventType
+    eventType: getSafeEventType(rowEventType, localEventType)
   };
 }
 
@@ -107,9 +107,7 @@ function readLocalEventSettings(): EventSettingsLoadResult {
         title: settings.title?.trim() ?? "",
         subtitle: settings.subtitle?.trim() ?? "",
         date: settings.date || undefined,
-        eventType: isEventType(settings.eventType)
-          ? settings.eventType
-          : defaultEventType
+        eventType: getSafeEventType(settings.eventType, defaultEventType)
       },
       hasEventSettings: true,
       source: "local"

@@ -1,6 +1,13 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 import Link from "next/link";
 import {
   primaryActionClassName,
@@ -67,8 +74,12 @@ export function HostMissionEngine({ guests, eventType }: HostMissionEngineProps)
   const [isSavingMission, setIsSavingMission] = useState(false);
   const [isLaunching, setIsLaunching] = useState(false);
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
-  const eventTemplate = getEventTemplate(eventType);
-  const templateMissions = getEventTemplateMissions(eventType);
+  const previousEventTypeRef = useRef(eventType);
+  const eventTemplate = useMemo(() => getEventTemplate(eventType), [eventType]);
+  const templateMissions = useMemo(
+    () => getEventTemplateMissions(eventType),
+    [eventType]
+  );
 
   const activeMissions = useMemo(
     () => missions.filter((mission) => mission.isActive),
@@ -214,7 +225,12 @@ export function HostMissionEngine({ guests, eventType }: HostMissionEngineProps)
     setSaveAsTemplate(Boolean(example.isTemplate));
   }
 
-  async function handleUseDefaultTemplate() {
+  const loadDefaultTemplate = useCallback(async () => {
+    if (!isSupabaseConfigured) {
+      setStatus("Supabase is required to save template missions.");
+      return;
+    }
+
     setStatus("");
     setIsLoadingTemplate(true);
 
@@ -238,7 +254,16 @@ export function HostMissionEngine({ guests, eventType }: HostMissionEngineProps)
     } finally {
       setIsLoadingTemplate(false);
     }
-  }
+  }, [eventType, loadMissionEngine, missions, templateMissions]);
+
+  useEffect(() => {
+    if (previousEventTypeRef.current === eventType) {
+      return;
+    }
+
+    previousEventTypeRef.current = eventType;
+    void loadDefaultTemplate();
+  }, [eventType, loadDefaultTemplate]);
 
   function resetMissionForm() {
     setEditingMissionId(undefined);
@@ -316,7 +341,7 @@ export function HostMissionEngine({ guests, eventType }: HostMissionEngineProps)
               <button
                 type="button"
                 className={secondaryActionClassName}
-                onClick={handleUseDefaultTemplate}
+                onClick={loadDefaultTemplate}
                 disabled={isLoadingTemplate}
               >
                 {isLoadingTemplate ? "Loading..." : "Use Default Template"}

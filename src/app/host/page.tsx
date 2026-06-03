@@ -35,7 +35,11 @@ import {
 } from "@/lib/supabase-guests";
 import { saveEventSettings } from "@/lib/supabase-event-settings";
 import { useEventSettings } from "@/lib/use-event-settings";
-import { eventTypes, type EventType } from "@/lib/event-templates";
+import {
+  eventTypes,
+  getEventTemplate,
+  type EventType
+} from "@/lib/event-templates";
 
 export default function HostPage() {
   const router = useRouter();
@@ -165,6 +169,13 @@ export default function HostPage() {
     } finally {
       setIsSavingSettings(false);
     }
+  }
+
+  function handleEventTypeChange(nextEventType: EventType) {
+    const template = getEventTemplate(nextEventType);
+    setEventType(nextEventType);
+    setEventTitle(template.suggestedTitle);
+    setEventSubtitle(template.suggestedDescription);
   }
 
   async function handleDeleteGuest(id: string) {
@@ -306,7 +317,7 @@ export default function HostPage() {
                 <select
                   value={eventType}
                   onChange={(event) =>
-                    setEventType(event.target.value as EventType)
+                    handleEventTypeChange(event.target.value as EventType)
                   }
                   className="mt-2 min-h-12 w-full rounded-md border border-stone-700 bg-charcoal px-4 text-base text-champagne outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30"
                 >
@@ -320,7 +331,7 @@ export default function HostPage() {
             </div>
           </form>
 
-          <HostMissionEngine guests={guests} eventType={settings.eventType} />
+          <HostMissionEngine guests={guests} eventType={eventType} />
 
           <div className="rounded-md border border-gold/30 bg-black/45 p-5">
             <p className="text-sm uppercase text-stone-400">
