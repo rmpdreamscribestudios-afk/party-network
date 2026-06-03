@@ -183,14 +183,14 @@ export function HostMissionEngine({ guests }: HostMissionEngineProps) {
     setSaveAsTemplate(mission.isTemplate);
   }
 
-  function useTemplate(mission: Mission) {
+  function applyTemplate(mission: Mission) {
     setEditingMissionId(undefined);
     setPrompt(mission.prompt);
     setCategory(mission.category);
     setSaveAsTemplate(false);
   }
 
-  function useExample(example: (typeof missionExamples)[number]) {
+  function applyExample(example: (typeof missionExamples)[number]) {
     setEditingMissionId(undefined);
     setPrompt(example.prompt);
     setCategory(example.category);
@@ -325,7 +325,7 @@ export function HostMissionEngine({ guests }: HostMissionEngineProps) {
                 key={example.prompt}
                 type="button"
                 className="rounded-md border border-stone-700 px-3 py-2 text-left text-sm font-semibold text-stone-200 transition hover:border-gold"
-                onClick={() => useExample(example)}
+                onClick={() => applyExample(example)}
               >
                 {example.category}: {example.prompt}
               </button>
@@ -358,7 +358,7 @@ export function HostMissionEngine({ guests }: HostMissionEngineProps) {
                     key={mission.id}
                     type="button"
                     className="min-w-48 rounded-md border border-stone-700 p-3 text-left text-sm font-semibold text-stone-100 transition hover:border-gold"
-                    onClick={() => useTemplate(mission)}
+                    onClick={() => applyTemplate(mission)}
                   >
                     <span className="block text-gold">{mission.category}</span>
                     {mission.prompt}
