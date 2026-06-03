@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@supabase/supabase-js";
-import type { RealtimeChannel } from "@supabase/supabase-js";
+import type { PostgrestError, RealtimeChannel } from "@supabase/supabase-js";
 import {
   addLocalGuest,
   clearLocalGuests,
@@ -33,6 +33,16 @@ type GuestInsert = {
   luck_score: number;
 };
 
+type GuestListResult = {
+  data: GuestRow[] | null;
+  error: PostgrestError | null;
+};
+
+type GuestSingleResult = {
+  data: GuestRow | null;
+  error: PostgrestError | null;
+};
+
 const baseGuestSelect = "id, name, funny_answer, luck_score, created_at";
 const profileGuestSelect =
   "id, name, first_name, interests, favorite_hobby, fun_fact, funny_answer, luck_score, created_at";
@@ -60,6 +70,34 @@ function mapGuest(row: GuestRow): PartyGuest {
   };
 }
 
+function isGuestRow(row: unknown): row is GuestRow {
+  if (!row || typeof row !== "object") {
+    return false;
+  }
+
+  const guest = row as Partial<GuestRow>;
+
+  return (
+    typeof guest.id === "string" &&
+    typeof guest.name === "string" &&
+    (guest.funny_answer === null || typeof guest.funny_answer === "string") &&
+    typeof guest.luck_score === "number" &&
+    typeof guest.created_at === "string"
+  );
+}
+
+function toGuestRows(data: unknown): GuestRow[] | null {
+  if (!Array.isArray(data)) {
+    return null;
+  }
+
+  return data.filter(isGuestRow);
+}
+
+function toGuestRow(data: unknown): GuestRow | null {
+  return isGuestRow(data) ? data : null;
+}
+
 function withLocalProfile(guest: PartyGuest): PartyGuest {
   const localGuest = readLocalGuestById(guest.id);
 
@@ -73,19 +111,29 @@ function withLocalProfile(guest: PartyGuest): PartyGuest {
   };
 }
 
-async function selectGuests(selectQuery: string) {
-  return supabase!
+async function selectGuests(selectQuery: string): Promise<GuestListResult> {
+  const { data, error } = await supabase!
     .from("guests")
     .select(selectQuery)
     .order("created_at", { ascending: false });
+
+  return {
+    data: toGuestRows(data),
+    error
+  };
 }
 
-async function selectGuestById(id: string, selectQuery: string) {
-  return supabase!
+async function selectGuestById(id: string, selectQuery: string): Promise<GuestSingleResult> {
+  const { data, error } = await supabase!
     .from("guests")
     .select(selectQuery)
     .eq("id", id)
     .maybeSingle();
+
+  return {
+    data: toGuestRow(data),
+    error
+  };
 }
 
 export async function fetchGuests(): Promise<PartyGuest[]> {
@@ -177,8 +225,14 @@ export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
     throw error;
   }
 
+  const insertedRow = toGuestRow(data);
+
+  if (!insertedRow) {
+    throw new Error("Supabase guest insert returned an invalid guest row.");
+  }
+
   const insertedGuest = {
-    ...mapGuest(data),
+    ...mapGuest(insertedRow),
     firstName: guest.firstName,
     interests: guest.interests,
     favoriteHobby: guest.favoriteHobby,
