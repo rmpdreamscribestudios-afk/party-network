@@ -3,11 +3,17 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase-guests";
 import { emitPartyUpdate } from "@/lib/party-storage";
+import {
+  defaultEventType,
+  type EventType,
+  isEventType
+} from "@/lib/event-templates";
 
 export type EventSettings = {
   title: string;
   subtitle: string;
   date?: string;
+  eventType: EventType;
 };
 
 type EventSettingsRow = {
@@ -15,9 +21,11 @@ type EventSettingsRow = {
   event_title?: string | null;
   event_subtitle?: string | null;
   event_date?: string | null;
+  event_type?: string | null;
   title?: string | null;
   subtitle?: string | null;
   date?: string | null;
+  type?: string | null;
 };
 
 type EventSettingsUpsert = {
@@ -25,6 +33,7 @@ type EventSettingsUpsert = {
   event_title: string;
   event_subtitle: string | null;
   event_date: string | null;
+  event_type: EventType;
 };
 
 type LegacyEventSettingsUpsert = {
@@ -46,7 +55,8 @@ export const PARTY_EVENT_SETTINGS_KEY = "party-network-event-settings";
 export const defaultEventSettings: EventSettings = {
   title: "Party Network",
   subtitle:
-    "Helping people connect, participate, and create meaningful memories together."
+    "Helping people connect, participate, and create meaningful memories together.",
+  eventType: defaultEventType
 };
 
 function getSettingsValue(...values: Array<string | null | undefined>) {
@@ -60,10 +70,14 @@ function getSettingsValue(...values: Array<string | null | undefined>) {
 }
 
 function mapEventSettings(row: EventSettingsRow): EventSettings {
+  const localEventType = readLocalEventSettings().settings.eventType;
+  const rowEventType = getSettingsValue(row.event_type, row.type);
+
   return {
     title: getSettingsValue(row.event_title, row.title),
     subtitle: getSettingsValue(row.event_subtitle, row.subtitle),
-    date: row.event_date ?? row.date ?? undefined
+    date: row.event_date ?? row.date ?? undefined,
+    eventType: isEventType(rowEventType) ? rowEventType : localEventType
   };
 }
 
@@ -92,7 +106,10 @@ function readLocalEventSettings(): EventSettingsLoadResult {
       settings: {
         title: settings.title?.trim() ?? "",
         subtitle: settings.subtitle?.trim() ?? "",
-        date: settings.date || undefined
+        date: settings.date || undefined,
+        eventType: isEventType(settings.eventType)
+          ? settings.eventType
+          : defaultEventType
       },
       hasEventSettings: true,
       source: "local"
@@ -112,7 +129,8 @@ function writeLocalEventSettings(settings: EventSettings) {
     JSON.stringify({
       title: settings.title.trim(),
       subtitle: settings.subtitle.trim(),
-      date: settings.date || undefined
+      date: settings.date || undefined,
+      eventType: settings.eventType
     })
   );
   emitPartyUpdate();
@@ -151,8 +169,11 @@ export async function fetchEventSettingsLoadResult(): Promise<EventSettingsLoadR
 }
 
 export async function saveEventSettings(settings: EventSettings) {
-  if (!supabase) {
+  if (typeof window !== "undefined") {
     writeLocalEventSettings(settings);
+  }
+
+  if (!supabase) {
     return;
   }
 
@@ -160,7 +181,8 @@ export async function saveEventSettings(settings: EventSettings) {
     id: EVENT_SETTINGS_ID,
     event_title: settings.title.trim(),
     event_subtitle: settings.subtitle.trim() || null,
-    event_date: settings.date || null
+    event_date: settings.date || null,
+    event_type: settings.eventType
   };
 
   const { error } = await supabase

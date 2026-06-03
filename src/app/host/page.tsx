@@ -35,6 +35,7 @@ import {
 } from "@/lib/supabase-guests";
 import { saveEventSettings } from "@/lib/supabase-event-settings";
 import { useEventSettings } from "@/lib/use-event-settings";
+import { eventTypes, type EventType } from "@/lib/event-templates";
 
 export default function HostPage() {
   const router = useRouter();
@@ -56,6 +57,7 @@ export default function HostPage() {
   const [eventTitle, setEventTitle] = useState(settings.title);
   const [eventSubtitle, setEventSubtitle] = useState(settings.subtitle);
   const [eventDate, setEventDate] = useState(settings.date ?? "");
+  const [eventType, setEventType] = useState<EventType>(settings.eventType);
   const [statusMessage, setStatusMessage] = useState("");
   const [isLoadingGuests, setIsLoadingGuests] = useState(false);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
@@ -110,6 +112,7 @@ export default function HostPage() {
     setEventTitle(settings.title);
     setEventSubtitle(settings.subtitle);
     setEventDate(settings.date ?? "");
+    setEventType(settings.eventType);
   }, [settings]);
 
   const averageLuck = useMemo(() => {
@@ -150,7 +153,8 @@ export default function HostPage() {
       await saveEventSettings({
         title: eventTitle,
         subtitle: eventSubtitle,
-        date: eventDate || undefined
+        date: eventDate || undefined,
+        eventType
       });
       await reloadSettings();
       setStatusMessage("Event settings saved.");
@@ -229,6 +233,9 @@ export default function HostPage() {
                 {settings.date}
               </p>
             ) : null}
+            <p className="mt-3 inline-flex rounded-md border border-gold/40 px-3 py-1 text-sm font-bold uppercase tracking-normal text-gold">
+              {settings.eventType}
+            </p>
           </div>
           <nav className="flex flex-wrap gap-3">
             <Link href="/live" className={secondaryActionClassName}>
@@ -270,7 +277,7 @@ export default function HostPage() {
                 {isSavingSettings ? "Saving..." : "Save Event Settings"}
               </button>
             </div>
-            <div className="mt-5 grid gap-4 md:grid-cols-[1fr_1fr_14rem]">
+            <div className="mt-5 grid gap-4 md:grid-cols-[1fr_1fr_14rem_14rem]">
               <FormField
                 required
                 label="Event Title"
@@ -290,10 +297,28 @@ export default function HostPage() {
                 value={eventDate}
                 onChange={(event) => setEventDate(event.target.value)}
               />
+              <label className="block">
+                <span className="text-sm font-medium text-stone-200">
+                  Event Type
+                </span>
+                <select
+                  value={eventType}
+                  onChange={(event) =>
+                    setEventType(event.target.value as EventType)
+                  }
+                  className="mt-2 min-h-12 w-full rounded-md border border-stone-700 bg-charcoal px-4 text-base text-champagne outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30"
+                >
+                  {eventTypes.map((nextEventType) => (
+                    <option key={nextEventType} value={nextEventType}>
+                      {nextEventType}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
           </form>
 
-          <HostMissionEngine guests={guests} />
+          <HostMissionEngine guests={guests} eventType={settings.eventType} />
 
           <div className="rounded-md border border-gold/30 bg-black/45 p-5">
             <p className="text-sm uppercase text-stone-400">
