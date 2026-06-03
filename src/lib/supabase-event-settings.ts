@@ -46,7 +46,7 @@ export const PARTY_EVENT_SETTINGS_KEY = "party-network-event-settings";
 export const defaultEventSettings: EventSettings = {
   title: "Party Network",
   subtitle:
-    "Add your name to the live wall, raffle pool, and prize reveal experience."
+    "Helping people connect, participate, and create meaningful memories together."
 };
 
 function getSettingsValue(...values: Array<string | null | undefined>) {

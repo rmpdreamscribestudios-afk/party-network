@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Party Network",
-  description: "Enter the Party Network experience."
+  description:
+    "Party Network is a Shared Experiences Platform helping people connect, participate, and create meaningful memories together."
 };
 
 export default function RootLayout({

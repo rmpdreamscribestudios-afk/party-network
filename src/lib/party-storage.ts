@@ -150,7 +150,7 @@ export function getPrizeById(prizeId?: string): Prize {
 
 export function getLuckMessage(score: number): string {
   if (score >= 90) {
-    return "Legendary energy. The raffle machine is sweating.";
+    return "Legendary energy. The live draw is feeling the pressure.";
   }
 
   if (score >= 70) {

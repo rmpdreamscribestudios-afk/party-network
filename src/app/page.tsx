@@ -13,7 +13,7 @@ export default function LandingPage() {
 
   return (
     <ExperienceShell
-      eyebrow="Premium Event System"
+      eyebrow="Shared Experiences Platform"
       title={settings.title}
       subtitle={settings.subtitle}
     >
@@ -26,18 +26,18 @@ export default function LandingPage() {
         </Link>
       </div>
       <div className="mt-8 grid gap-3 text-left text-sm text-stone-300 sm:grid-cols-3">
-        {["Register", "Draw", "Reveal"].map((item) => (
+        {["Connect", "Participate", "Remember"].map((item) => (
           <div
             key={item}
             className="rounded-md border border-gold/25 bg-black/40 p-4 backdrop-blur"
           >
             <p className="font-bold uppercase text-gold">{item}</p>
             <p className="mt-2 leading-6">
-              {item === "Register"
-                ? "Guests join from any phone and sync to the shared list."
-                : item === "Draw"
-                  ? "Host chooses a winner from Supabase guests."
-                  : "Prize reveals build up to the 8KG rice finale."}
+              {item === "Connect"
+                ? "Guests join from any phone and become part of the shared room."
+                : item === "Participate"
+                  ? "Hosts guide live moments that keep everyone involved."
+                  : "Reveals and missions turn the event into a memory people can share."}
             </p>
           </div>
         ))}

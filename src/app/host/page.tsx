@@ -212,7 +212,7 @@ export default function HostPage() {
               Live Display
             </Link>
             <Link href="/raffle" className={primaryActionClassName}>
-              Raffle
+              Live Draw
             </Link>
             <Link href="/prize" className={secondaryActionClassName}>
               Prize Reveal
@@ -259,7 +259,7 @@ export default function HostPage() {
                 label="Event Subtitle"
                 value={eventSubtitle}
                 onChange={(event) => setEventSubtitle(event.target.value)}
-                placeholder="A night of games, prizes, and memories"
+                placeholder="Helping people connect, participate, and create meaningful memories together."
               />
               <FormField
                 label="Event Date"
@@ -386,7 +386,7 @@ export default function HostPage() {
                 ))
               ) : (
                 <p className="rounded-md border border-dashed border-gold/30 p-8 text-center text-stone-300">
-                  No guests yet. The Network awaits names.
+                  No guests yet. The shared experience is ready for names.
                 </p>
               )}
             </div>

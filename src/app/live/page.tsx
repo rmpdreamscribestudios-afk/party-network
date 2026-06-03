@@ -116,7 +116,9 @@ export default function LivePage() {
       <section className="relative z-10 flex w-full flex-col justify-between">
         <header className="flex items-start justify-between gap-6">
           <div>
-            <p className="text-xl font-bold uppercase text-gold">Live Party Feed</p>
+            <p className="text-xl font-bold uppercase text-gold">
+              Live Experience Feed
+            </p>
             <h1 className="mt-2 text-6xl font-black text-champagne md:text-8xl">
               {settings.title}
             </h1>
@@ -161,7 +163,7 @@ export default function LivePage() {
               <p className="text-3xl font-black text-gold md:text-6xl">
                 {guests.length.toString().padStart(2, "0")}
               </p>
-              <p className="text-xl text-stone-300">Guests connected</p>
+              <p className="text-xl text-stone-300">People connected</p>
             </div>
             <div>
               <p className="break-words text-3xl font-black text-gold md:text-5xl">

@@ -33,7 +33,7 @@ export default function HostLoginPage() {
     <ExperienceShell
       eyebrow="Host Access"
       title="Party Network"
-      subtitle="Enter the host PIN to open the control dashboard."
+      subtitle="Open the dashboard for shared participation, live moments, and event memories."
       align="left"
     >
       <form onSubmit={handleSubmit} className="space-y-5">

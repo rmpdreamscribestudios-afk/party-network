@@ -84,7 +84,7 @@ export default function RafflePage() {
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-5 py-8 text-center">
       <div className="premium-orbit" />
       <section className="relative z-10 w-full max-w-5xl">
-        <p className="text-lg font-bold uppercase text-gold">Raffle Draw</p>
+        <p className="text-lg font-bold uppercase text-gold">Live Draw</p>
         <p className="mt-2 text-2xl font-bold text-champagne">{settings.title}</p>
         <h1 className="mt-3 text-5xl font-black text-champagne sm:text-7xl md:text-8xl">
           THE NETWORK HAS CHOSEN

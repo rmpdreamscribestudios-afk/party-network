@@ -115,7 +115,7 @@ export const missionExamples: MissionInput[] = [
     isTemplate: true
   },
   {
-    prompt: "Form a tiny team of three and invent a party cheer.",
+    prompt: "Form a tiny team of three and create a shared celebration chant.",
     category: "Team Building",
     isTemplate: true
   },

@@ -1,8 +1,8 @@
 # Party Network
 
-Party Network is a production-ready MVP for a mobile-first interactive event experience built with Next.js 15, TypeScript, Tailwind CSS, and the App Router.
+Party Network is a production-ready MVP for a mobile-first Shared Experiences Platform built with Next.js 15, TypeScript, Tailwind CSS, and the App Router.
 
-Guests scan a QR code, join the event, receive a luck score, and enter a shared live raffle experience backed by Supabase.
+Guests scan a QR code, join the event, receive a luck score, take part in shared participation moments, and help create meaningful memories together.
 
 ## Routes
 
@@ -13,12 +13,12 @@ Guests scan a QR code, join the event, receive a luck score, and enter a shared 
 - `/success` - compatibility redirect-style screen for older links
 - `/host` - host dashboard
 - `/live` - projector-friendly live display
-- `/raffle` - dramatic raffle draw
+- `/raffle` - dramatic live draw
 - `/prize` - regular prize reveal
 - `/grand-prize` - final grand prize reveal
 - `/message` - host message screen
 
-Guest registrations, event settings, missions, mission rounds, and mission assignments are stored in Supabase so every phone sees the same event list, event title, active mission round, timer, and completion stats. Raffle reveal state still uses browser event state for the host flow.
+Guest registrations, event settings, missions, mission rounds, and mission assignments are stored in Supabase so every phone sees the same event list, event title, active mission round, timer, and completion stats. Reveal state still uses browser event state for the host flow.
 
 ## Local Development
 
@@ -77,7 +77,7 @@ insert into public.event_settings (
 ) values (
   'current',
   'Party Network',
-  'Add your name to the live wall, raffle pool, and prize reveal experience.',
+  'Helping people connect, participate, and create meaningful memories together.',
   null
 );
 ```
@@ -141,7 +141,7 @@ insert into public.missions (prompt, category, is_template) values
   ('Meet someone from another table and learn what brought them here.', 'Icebreaker', true),
   ('Find a guest you have not spoken to yet and trade favorite snacks.', 'Friendship', true),
   ('Ask someone for a family tradition they actually enjoy.', 'Family', true),
-  ('Form a tiny team of three and invent a party cheer.', 'Team Building', true),
+  ('Form a tiny team of three and create a shared celebration chant.', 'Team Building', true),
   ('Introduce two guests who should know each other.', 'Community', true),
   ('Give someone a specific, genuine compliment.', 'Kindness', true);
 ```
