@@ -136,6 +136,19 @@ async function selectGuestById(id: string, selectQuery: string): Promise<GuestSi
   };
 }
 
+async function insertGuestRow(payload: GuestInsert, selectQuery: string): Promise<GuestSingleResult> {
+  const { data, error } = await supabase!
+    .from("guests")
+    .insert(payload)
+    .select(selectQuery)
+    .single();
+
+  return {
+    data: toGuestRow(data),
+    error
+  };
+}
+
 export async function fetchGuests(): Promise<PartyGuest[]> {
   if (!supabase) {
     return readLocalGuests();
@@ -203,11 +216,7 @@ export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
     luck_score: guest.luckScore
   };
 
-  let { data, error } = await supabase
-    .from("guests")
-    .insert(payload)
-    .select(profileGuestSelect)
-    .single();
+  let { data, error } = await insertGuestRow(payload, profileGuestSelect);
 
   if (error) {
     const fallbackPayload: GuestInsert = {
@@ -215,11 +224,7 @@ export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
       funny_answer: guest.answer ?? null,
       luck_score: guest.luckScore
     };
-    const fallback = await supabase
-      .from("guests")
-      .insert(fallbackPayload)
-      .select(baseGuestSelect)
-      .single();
+    const fallback = await insertGuestRow(fallbackPayload, baseGuestSelect);
 
     data = fallback.data;
     error = fallback.error;
