@@ -3,6 +3,10 @@
 export type PartyGuest = {
   id: string;
   name: string;
+  firstName?: string;
+  interests?: string;
+  favoriteHobby?: string;
+  funFact?: string;
   answer?: string;
   luckScore: number;
   createdAt: string;
@@ -46,14 +50,32 @@ export const initialRaffleState: RaffleState = {
   grandPrizeRevealed: false
 };
 
-export function createGuest(name: string, answer?: string): PartyGuest {
+export type GuestProfileInput = {
+  firstName?: string;
+  interests?: string;
+  favoriteHobby?: string;
+  funFact?: string;
+  answer?: string;
+};
+
+export function createGuest(
+  name: string,
+  profile: GuestProfileInput | string = {}
+): PartyGuest {
+  const nextProfile =
+    typeof profile === "string" ? { answer: profile } : profile;
+
   return {
     id:
       typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     name: name.trim(),
-    answer: answer?.trim() || undefined,
+    firstName: nextProfile.firstName?.trim() || undefined,
+    interests: nextProfile.interests?.trim() || undefined,
+    favoriteHobby: nextProfile.favoriteHobby?.trim() || undefined,
+    funFact: nextProfile.funFact?.trim() || undefined,
+    answer: nextProfile.answer?.trim() || undefined,
     luckScore: Math.floor(Math.random() * 100) + 1,
     createdAt: new Date().toISOString()
   };

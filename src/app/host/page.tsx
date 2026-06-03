@@ -13,6 +13,13 @@ import {
 } from "@/lib/party-storage";
 import type { PartyGuest, RaffleState } from "@/lib/party-storage";
 import {
+  clearAllConnectionRecords,
+  fetchConnectionRecords,
+  getConnectionStats,
+  subscribeToConnectionChanges
+} from "@/lib/connection-engine";
+import type { ConnectionStats } from "@/lib/connection-engine";
+import {
   primaryActionClassName,
   secondaryActionClassName
 } from "@/components/button-styles";
@@ -33,6 +40,13 @@ export default function HostPage() {
   const router = useRouter();
   const { settings, reloadSettings } = useEventSettings();
   const [guests, setGuests] = useState<PartyGuest[]>([]);
+  const [connectionStats, setConnectionStats] = useState<ConnectionStats>({
+    connectionsCreated: 0,
+    participationRate: 0,
+    mostCompletedMission: "Pending",
+    missionsCompleted: 0,
+    newPeopleMet: 0
+  });
   const [raffleState, setRaffleState] = useState<RaffleState>({
     prizeRevealed: false,
     grandPrizeRevealed: false
@@ -51,7 +65,12 @@ export default function HostPage() {
     setStatusMessage("");
 
     try {
-      setGuests(await fetchGuests());
+      const [nextGuests, nextConnectionRecords] = await Promise.all([
+        fetchGuests(),
+        fetchConnectionRecords()
+      ]);
+      setGuests(nextGuests);
+      setConnectionStats(getConnectionStats(nextGuests, nextConnectionRecords));
     } catch {
       setStatusMessage("Could not load guests.");
     } finally {
@@ -67,7 +86,8 @@ export default function HostPage() {
     syncRaffleState();
     loadGuests();
 
-    const channel = subscribeToGuestChanges(loadGuests);
+    const guestChannel = subscribeToGuestChanges(loadGuests);
+    const connectionChannel = subscribeToConnectionChanges(loadGuests);
     const pollingId = window.setInterval(loadGuests, 5000);
 
     window.addEventListener("storage", syncRaffleState);
@@ -76,7 +96,8 @@ export default function HostPage() {
     window.addEventListener(PARTY_EVENT_UPDATE, loadGuests);
 
     return () => {
-      channel?.unsubscribe();
+      guestChannel?.unsubscribe();
+      connectionChannel?.unsubscribe();
       window.clearInterval(pollingId);
       window.removeEventListener("storage", syncRaffleState);
       window.removeEventListener("storage", loadGuests);
@@ -156,6 +177,7 @@ export default function HostPage() {
 
     try {
       await clearGuests();
+      await clearAllConnectionRecords();
       writeRaffleState({
         prizeRevealed: false,
         grandPrizeRevealed: false
@@ -168,6 +190,7 @@ export default function HostPage() {
 
   async function handleResetEvent() {
     resetPartyData();
+    await clearAllConnectionRecords();
     try {
       await clearGuests();
     } catch {
@@ -273,6 +296,31 @@ export default function HostPage() {
           <HostMissionEngine guests={guests} />
 
           <div className="rounded-md border border-gold/30 bg-black/45 p-5">
+            <p className="text-sm uppercase text-stone-400">
+              Connections Created
+            </p>
+            <p className="mt-2 text-5xl font-black text-gold">
+              {connectionStats.connectionsCreated}
+            </p>
+          </div>
+          <div className="rounded-md border border-gold/30 bg-black/45 p-5">
+            <p className="text-sm uppercase text-stone-400">
+              Participation Rate
+            </p>
+            <p className="mt-2 text-5xl font-black text-gold">
+              {connectionStats.participationRate}%
+            </p>
+          </div>
+          <div className="rounded-md border border-gold/30 bg-black/45 p-5 md:col-span-2">
+            <p className="text-sm uppercase text-stone-400">
+              Most Completed Mission
+            </p>
+            <p className="mt-2 text-2xl font-black leading-tight text-gold">
+              {connectionStats.mostCompletedMission}
+            </p>
+          </div>
+
+          <div className="rounded-md border border-gold/30 bg-black/45 p-5">
             <p className="text-sm uppercase text-stone-400">Guests</p>
             <p className="mt-2 text-5xl font-black text-gold">{guests.length}</p>
           </div>
@@ -370,6 +418,25 @@ export default function HostPage() {
                         <p className="mt-1 text-sm text-stone-400">
                           {guest.answer}
                         </p>
+                      ) : null}
+                      {guest.interests || guest.favoriteHobby || guest.funFact ? (
+                        <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold text-stone-300">
+                          {guest.favoriteHobby ? (
+                            <span className="rounded-md border border-stone-700 px-2 py-1">
+                              Hobby: {guest.favoriteHobby}
+                            </span>
+                          ) : null}
+                          {guest.interests ? (
+                            <span className="rounded-md border border-stone-700 px-2 py-1">
+                              Interests: {guest.interests}
+                            </span>
+                          ) : null}
+                          {guest.funFact ? (
+                            <span className="rounded-md border border-stone-700 px-2 py-1">
+                              Fun fact: {guest.funFact}
+                            </span>
+                          ) : null}
+                        </div>
                       ) : null}
                     </div>
                     <p className="text-3xl font-black text-gold">

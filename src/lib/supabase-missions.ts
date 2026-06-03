@@ -100,6 +100,31 @@ export type MissionCompletionInput = {
 
 export const missionExamples: MissionInput[] = [
   {
+    prompt: "Find someone who shares your hobby.",
+    category: "Friendship",
+    isTemplate: true
+  },
+  {
+    prompt: "Meet someone from another group.",
+    category: "Community",
+    isTemplate: true
+  },
+  {
+    prompt: "Learn one thing about someone new.",
+    category: "Icebreaker",
+    isTemplate: true
+  },
+  {
+    prompt: "Find someone who has visited another country.",
+    category: "Icebreaker",
+    isTemplate: true
+  },
+  {
+    prompt: "Find someone with the same favorite food.",
+    category: "Friendship",
+    isTemplate: true
+  },
+  {
     prompt: "Meet someone from another table and learn what brought them here.",
     category: "Icebreaker",
     isTemplate: true

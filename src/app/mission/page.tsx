@@ -8,7 +8,22 @@ import {
   secondaryActionClassName
 } from "@/components/button-styles";
 import { ExperienceShell } from "@/components/experience-shell";
-import { fetchGuestById } from "@/lib/supabase-guests";
+import {
+  fetchGuestById,
+  fetchGuests
+} from "@/lib/supabase-guests";
+import type { PartyGuest } from "@/lib/party-storage";
+import {
+  connectionMissions,
+  createConnectionRecord,
+  fetchConnectionRecords,
+  getConnectionStats,
+  getMatchSuggestion
+} from "@/lib/connection-engine";
+import type {
+  ConnectionRecord,
+  MatchSuggestion
+} from "@/lib/connection-engine";
 import {
   completeGuestMission,
   fetchLatestGuestMission
@@ -19,7 +34,18 @@ import { useEventSettings } from "@/lib/use-event-settings";
 export default function MissionPage() {
   const { settings } = useEventSettings();
   const [guestName, setGuestName] = useState("Guest");
+  const [guest, setGuest] = useState<PartyGuest>();
+  const [guests, setGuests] = useState<PartyGuest[]>([]);
+  const [connectionRecords, setConnectionRecords] = useState<ConnectionRecord[]>(
+    []
+  );
   const [guestMission, setGuestMission] = useState<GuestMission>();
+  const [matchSuggestion, setMatchSuggestion] = useState<MatchSuggestion>();
+  const [selectedMissionId, setSelectedMissionId] = useState(
+    connectionMissions[0].id
+  );
+  const [metGuestId, setMetGuestId] = useState("");
+  const [connectionMessage, setConnectionMessage] = useState("");
   const [message, setMessage] = useState("Loading your mission...");
   const [isCompleting, setIsCompleting] = useState(false);
   const [notes, setNotes] = useState("");
@@ -35,19 +61,35 @@ export default function MissionPage() {
       }
 
       try {
-        const [guest, mission] = await Promise.all([
+        const [guest, nextGuests, nextConnectionRecords] = await Promise.all([
           fetchGuestById(guestId),
-          fetchLatestGuestMission(guestId)
+          fetchGuests(),
+          fetchConnectionRecords()
         ]);
+        let mission: GuestMission | undefined;
+
+        try {
+          mission = await fetchLatestGuestMission(guestId);
+        } catch {
+          mission = undefined;
+        }
 
         setGuestName(guest?.name ?? "Guest");
+        setGuest(guest);
+        setGuests(nextGuests);
+        setConnectionRecords(nextConnectionRecords);
+        const suggestion = guest
+          ? getMatchSuggestion(guest, nextGuests)
+          : undefined;
+        setMatchSuggestion(suggestion);
+        setMetGuestId(suggestion?.guest.id ?? "");
         setGuestMission(mission);
         setNotes(mission?.notes ?? "");
         setPhotoProofUrl(mission?.photoProofUrl ?? "");
         setMessage(
           mission
             ? "Your mission is live. Complete it in the room, then tap done."
-            : "No mission assigned yet. Check back after the host launches a round."
+            : "No timed mission assigned yet. Try a connection mission below."
         );
       } catch {
         setMessage("Could not load your mission. Please check with the host.");
@@ -85,6 +127,13 @@ export default function MissionPage() {
   }
 
   const isComplete = Boolean(guestMission?.completedAt);
+  const connectionStats = guest
+    ? getConnectionStats(
+        guests,
+        connectionRecords.filter((record) => record.guestId === guest.id)
+      )
+    : undefined;
+  const otherGuests = guests.filter((nextGuest) => nextGuest.id !== guest?.id);
 
   function handlePhotoProof(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -100,6 +149,20 @@ export default function MissionPage() {
       }
     };
     reader.readAsDataURL(file);
+  }
+
+  async function handleConnectionComplete() {
+    if (!guest) {
+      return;
+    }
+
+    await createConnectionRecord({
+      guestId: guest.id,
+      metGuestId: metGuestId || undefined,
+      missionId: selectedMissionId
+    });
+    setConnectionRecords(await fetchConnectionRecords());
+    setConnectionMessage("Connection logged. Keep the conversation moving.");
   }
 
   return (
@@ -185,6 +248,92 @@ export default function MissionPage() {
           </div>
         ) : null}
       </div>
+      {guest ? (
+        <div className="mt-6 rounded-md border border-gold/40 bg-black/50 p-6 text-left shadow-gold backdrop-blur">
+          <p className="text-sm font-bold uppercase tracking-normal text-gold">
+            Connection Engine
+          </p>
+          <h2 className="mt-2 text-2xl font-black leading-tight text-champagne">
+            Find a real conversation
+          </h2>
+          {matchSuggestion ? (
+            <p className="mt-3 rounded-md border border-gold/25 bg-stone-950/70 p-3 text-base font-semibold text-stone-100">
+              {matchSuggestion.message}
+            </p>
+          ) : (
+            <p className="mt-3 text-base leading-7 text-stone-200">
+              You may be the first profile with connection details. Pick a mission
+              and invite someone nearby.
+            </p>
+          )}
+
+          <div className="mt-5 space-y-4">
+            <label className="block">
+              <span className="text-sm font-medium text-stone-200">
+                Guided mission
+              </span>
+              <select
+                value={selectedMissionId}
+                onChange={(event) => setSelectedMissionId(event.target.value)}
+                className="mt-2 min-h-12 w-full rounded-md border border-stone-700 bg-charcoal px-4 text-base text-champagne outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30"
+              >
+                {connectionMissions.map((mission) => (
+                  <option key={mission.id} value={mission.id}>
+                    {mission.prompt}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-medium text-stone-200">
+                Person you met
+              </span>
+              <select
+                value={metGuestId}
+                onChange={(event) => setMetGuestId(event.target.value)}
+                className="mt-2 min-h-12 w-full rounded-md border border-stone-700 bg-charcoal px-4 text-base text-champagne outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30"
+              >
+                <option value="">Someone new</option>
+                {otherGuests.map((nextGuest) => (
+                  <option key={nextGuest.id} value={nextGuest.id}>
+                    {nextGuest.firstName || nextGuest.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <button
+              type="button"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-md border border-gold bg-gold px-6 py-3 text-center text-base font-bold text-obsidian shadow-gold transition hover:bg-champagne focus:outline-none focus:ring-2 focus:ring-champagne focus:ring-offset-2 focus:ring-offset-obsidian"
+              onClick={handleConnectionComplete}
+            >
+              I Made This Connection
+            </button>
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <ConnectionStat
+              label="Connections"
+              value={(connectionStats?.connectionsCreated ?? 0).toString()}
+            />
+            <ConnectionStat
+              label="Missions Done"
+              value={(connectionStats?.missionsCompleted ?? 0).toString()}
+            />
+            <ConnectionStat
+              label="New People"
+              value={(connectionStats?.newPeopleMet ?? 0).toString()}
+            />
+          </div>
+
+          {connectionMessage ? (
+            <p className="mt-4 rounded-md border border-gold/30 bg-black/50 p-3 text-sm font-semibold text-champagne">
+              {connectionMessage}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
         <Link href="/join" className={primaryActionClassName}>
           Add Another Guest
@@ -194,5 +343,17 @@ export default function MissionPage() {
         </Link>
       </div>
     </ExperienceShell>
+  );
+}
+
+function ConnectionStat({
+  label,
+  value
+}: Readonly<{ label: string; value: string }>) {
+  return (
+    <div className="rounded-md border border-stone-800 bg-stone-950/70 p-3">
+      <p className="text-xs uppercase text-stone-400">{label}</p>
+      <p className="mt-1 text-3xl font-black text-gold">{value}</p>
+    </div>
   );
 }

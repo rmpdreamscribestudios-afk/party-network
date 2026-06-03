@@ -14,6 +14,10 @@ import type { PartyGuest } from "@/lib/party-storage";
 type GuestRow = {
   id: string;
   name: string;
+  first_name?: string | null;
+  interests?: string | null;
+  favorite_hobby?: string | null;
+  fun_fact?: string | null;
   funny_answer: string | null;
   luck_score: number;
   created_at: string;
@@ -21,9 +25,17 @@ type GuestRow = {
 
 type GuestInsert = {
   name: string;
+  first_name?: string | null;
+  interests?: string | null;
+  favorite_hobby?: string | null;
+  fun_fact?: string | null;
   funny_answer?: string | null;
   luck_score: number;
 };
+
+const baseGuestSelect = "id, name, funny_answer, luck_score, created_at";
+const profileGuestSelect =
+  "id, name, first_name, interests, favorite_hobby, fun_fact, funny_answer, luck_score, created_at";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -38,10 +50,42 @@ function mapGuest(row: GuestRow): PartyGuest {
   return {
     id: row.id,
     name: row.name,
+    firstName: row.first_name ?? undefined,
+    interests: row.interests ?? undefined,
+    favoriteHobby: row.favorite_hobby ?? undefined,
+    funFact: row.fun_fact ?? undefined,
     answer: row.funny_answer ?? undefined,
     luckScore: row.luck_score,
     createdAt: row.created_at
   };
+}
+
+function withLocalProfile(guest: PartyGuest): PartyGuest {
+  const localGuest = readLocalGuestById(guest.id);
+
+  return {
+    ...guest,
+    firstName: guest.firstName ?? localGuest?.firstName,
+    interests: guest.interests ?? localGuest?.interests,
+    favoriteHobby: guest.favoriteHobby ?? localGuest?.favoriteHobby,
+    funFact: guest.funFact ?? localGuest?.funFact,
+    answer: guest.answer ?? localGuest?.answer
+  };
+}
+
+async function selectGuests(selectQuery: string) {
+  return supabase!
+    .from("guests")
+    .select(selectQuery)
+    .order("created_at", { ascending: false });
+}
+
+async function selectGuestById(id: string, selectQuery: string) {
+  return supabase!
+    .from("guests")
+    .select(selectQuery)
+    .eq("id", id)
+    .maybeSingle();
 }
 
 export async function fetchGuests(): Promise<PartyGuest[]> {
@@ -50,16 +94,19 @@ export async function fetchGuests(): Promise<PartyGuest[]> {
   }
 
   try {
-    const { data, error } = await supabase
-      .from("guests")
-      .select("id, name, funny_answer, luck_score, created_at")
-      .order("created_at", { ascending: false });
+    let { data, error } = await selectGuests(profileGuestSelect);
+
+    if (error) {
+      const fallback = await selectGuests(baseGuestSelect);
+      data = fallback.data;
+      error = fallback.error;
+    }
 
     if (error) {
       return readLocalGuests();
     }
 
-    return (data ?? []).map(mapGuest);
+    return (data ?? []).map(mapGuest).map(withLocalProfile);
   } catch {
     return readLocalGuests();
   }
@@ -71,17 +118,19 @@ export async function fetchGuestById(id: string): Promise<PartyGuest | undefined
   }
 
   try {
-    const { data, error } = await supabase
-      .from("guests")
-      .select("id, name, funny_answer, luck_score, created_at")
-      .eq("id", id)
-      .maybeSingle();
+    let { data, error } = await selectGuestById(id, profileGuestSelect);
+
+    if (error) {
+      const fallback = await selectGuestById(id, baseGuestSelect);
+      data = fallback.data;
+      error = fallback.error;
+    }
 
     if (error) {
       return readLocalGuestById(id);
     }
 
-    return data ? mapGuest(data) : readLocalGuestById(id);
+    return data ? withLocalProfile(mapGuest(data)) : readLocalGuestById(id);
   } catch {
     return readLocalGuestById(id);
   }
@@ -94,21 +143,50 @@ export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
 
   const payload: GuestInsert = {
     name: guest.name,
+    first_name: guest.firstName ?? null,
+    interests: guest.interests ?? null,
+    favorite_hobby: guest.favoriteHobby ?? null,
+    fun_fact: guest.funFact ?? null,
     funny_answer: guest.answer ?? null,
     luck_score: guest.luckScore
   };
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("guests")
     .insert(payload)
-    .select("id, name, funny_answer, luck_score, created_at")
+    .select(profileGuestSelect)
     .single();
+
+  if (error) {
+    const fallbackPayload: GuestInsert = {
+      name: guest.name,
+      funny_answer: guest.answer ?? null,
+      luck_score: guest.luckScore
+    };
+    const fallback = await supabase
+      .from("guests")
+      .insert(fallbackPayload)
+      .select(baseGuestSelect)
+      .single();
+
+    data = fallback.data;
+    error = fallback.error;
+  }
 
   if (error) {
     throw error;
   }
 
-  return mapGuest(data);
+  const insertedGuest = {
+    ...mapGuest(data),
+    firstName: guest.firstName,
+    interests: guest.interests,
+    favoriteHobby: guest.favoriteHobby,
+    funFact: guest.funFact
+  };
+
+  addLocalGuest(insertedGuest);
+  return insertedGuest;
 }
 
 export async function deleteGuest(id: string) {
@@ -122,6 +200,8 @@ export async function deleteGuest(id: string) {
   if (error) {
     throw error;
   }
+
+  deleteLocalGuest(id);
 }
 
 export async function clearGuests() {
@@ -135,6 +215,8 @@ export async function clearGuests() {
   if (error) {
     throw error;
   }
+
+  clearLocalGuests();
 }
 
 export function subscribeToGuestChanges(onChange: () => void): RealtimeChannel | null {

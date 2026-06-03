@@ -48,10 +48,24 @@ If these variables are missing, the app shows: `Supabase is not configured yet.`
 create table public.guests (
   id uuid primary key default gen_random_uuid(),
   name text not null,
+  first_name text,
+  interests text,
+  favorite_hobby text,
+  fun_fact text,
   funny_answer text,
   luck_score integer not null check (luck_score between 1 and 100),
   created_at timestamptz not null default now()
 );
+```
+
+For an existing `guests` table, add the optional profile columns:
+
+```sql
+alter table public.guests
+  add column if not exists first_name text,
+  add column if not exists interests text,
+  add column if not exists favorite_hobby text,
+  add column if not exists fun_fact text;
 ```
 
 4. Create the `event_settings` table:
@@ -134,10 +148,33 @@ create index mission_rounds_active_idx
   on public.mission_rounds (status, started_at desc);
 ```
 
-8. Seed starter missions:
+8. Create the Connection Engine tracking table:
+
+```sql
+create table public.connection_records (
+  id uuid primary key default gen_random_uuid(),
+  guest_id uuid not null references public.guests(id) on delete cascade,
+  met_guest_id uuid references public.guests(id) on delete set null,
+  mission_id text not null,
+  created_at timestamptz not null default now()
+);
+
+create index connection_records_guest_idx
+  on public.connection_records (guest_id, created_at desc);
+
+create index connection_records_mission_idx
+  on public.connection_records (mission_id);
+```
+
+9. Seed starter missions:
 
 ```sql
 insert into public.missions (prompt, category, is_template) values
+  ('Find someone who shares your hobby.', 'Friendship', true),
+  ('Meet someone from another group.', 'Community', true),
+  ('Learn one thing about someone new.', 'Icebreaker', true),
+  ('Find someone who has visited another country.', 'Icebreaker', true),
+  ('Find someone with the same favorite food.', 'Friendship', true),
   ('Meet someone from another table and learn what brought them here.', 'Icebreaker', true),
   ('Find a guest you have not spoken to yet and trade favorite snacks.', 'Friendship', true),
   ('Ask someone for a family tradition they actually enjoy.', 'Family', true),
@@ -146,16 +183,16 @@ insert into public.missions (prompt, category, is_template) values
   ('Give someone a specific, genuine compliment.', 'Kindness', true);
 ```
 
-9. Enable Realtime for the `missions`, `mission_rounds`, and `guest_missions` tables in Supabase under **Database > Replication**.
-10. In **Project Settings > API**, copy the project URL and anon public key.
-11. Add these environment variables in Vercel under **Settings > Environment Variables**:
+10. Enable Realtime for the `missions`, `mission_rounds`, `guest_missions`, and `connection_records` tables in Supabase under **Database > Replication**.
+11. In **Project Settings > API**, copy the project URL and anon public key.
+12. Add these environment variables in Vercel under **Settings > Environment Variables**:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-12. Redeploy the Vercel project.
+13. Redeploy the Vercel project.
 
 ## Production Check
 

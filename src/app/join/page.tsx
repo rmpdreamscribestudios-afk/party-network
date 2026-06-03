@@ -36,6 +36,10 @@ export default function JoinPage() {
     error: eventSettingsError
   } = useEventSettings();
   const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [interests, setInterests] = useState("");
+  const [favoriteHobby, setFavoriteHobby] = useState("");
+  const [funFact, setFunFact] = useState("");
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,7 +71,15 @@ export default function JoinPage() {
     setIsSubmitting(true);
 
     try {
-      const guest = await insertGuest(createGuest(name, answer));
+      const guest = await insertGuest(
+        createGuest(name, {
+          firstName,
+          interests,
+          favoriteHobby,
+          funFact,
+          answer
+        })
+      );
       router.push(`/confirmation?id=${encodeURIComponent(guest.id)}`);
     } catch (error) {
       setError(getRegistrationErrorMessage(error));
@@ -92,6 +104,41 @@ export default function JoinPage() {
           value={name}
           onChange={(event) => setName(event.target.value)}
           placeholder="Your name"
+        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            label="First Name"
+            name="firstName"
+            type="text"
+            autoComplete="given-name"
+            value={firstName}
+            onChange={(event) => setFirstName(event.target.value)}
+            placeholder="Optional"
+          />
+          <FormField
+            label="Favorite Hobby"
+            name="favoriteHobby"
+            type="text"
+            value={favoriteHobby}
+            onChange={(event) => setFavoriteHobby(event.target.value)}
+            placeholder="Basketball, cooking, karaoke"
+          />
+        </div>
+        <FormField
+          label="Interests"
+          name="interests"
+          type="text"
+          value={interests}
+          onChange={(event) => setInterests(event.target.value)}
+          placeholder="Travel, food, games"
+        />
+        <FormField
+          label="Fun Fact"
+          name="funFact"
+          type="text"
+          value={funFact}
+          onChange={(event) => setFunFact(event.target.value)}
+          placeholder="One quick thing people can ask about"
         />
         <FormField
           label="If your luck had a theme song, what would it be?"
