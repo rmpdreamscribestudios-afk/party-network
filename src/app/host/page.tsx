@@ -17,6 +17,7 @@ import {
   secondaryActionClassName
 } from "@/components/button-styles";
 import { FormField } from "@/components/form-field";
+import { HostMissionEngine } from "@/components/host-mission-engine";
 import { clearHostAccess } from "@/lib/host-auth";
 import {
   clearGuests,
@@ -268,6 +269,8 @@ export default function HostPage() {
               />
             </div>
           </form>
+
+          <HostMissionEngine guests={guests} />
 
           <div className="rounded-md border border-gold/30 bg-black/45 p-5">
             <p className="text-sm uppercase text-stone-400">Guests</p>

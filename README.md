@@ -9,6 +9,7 @@ Guests scan a QR code, join the event, receive a luck score, and enter a shared 
 - `/` - guest landing page
 - `/join` - guest registration
 - `/confirmation` - registration success and luck score
+- `/mission` - guest mission card and completion action
 - `/success` - compatibility redirect-style screen for older links
 - `/host` - host dashboard
 - `/live` - projector-friendly live display
@@ -17,7 +18,7 @@ Guests scan a QR code, join the event, receive a luck score, and enter a shared 
 - `/grand-prize` - final grand prize reveal
 - `/message` - host message screen
 
-Guest registrations and event settings are stored in Supabase so every phone sees the same event list and event title. Raffle reveal state still uses browser event state for the host flow.
+Guest registrations, event settings, missions, mission assignments, and mission completions are stored in Supabase so every phone sees the same event list, event title, and mission round. Raffle reveal state still uses browser event state for the host flow.
 
 ## Local Development
 
@@ -46,7 +47,7 @@ If these variables are missing, the app shows: `Supabase is not configured yet.`
 ```sql
 create table public.guests (
   id uuid primary key default gen_random_uuid(),
-  guest_name text not null,
+  name text not null,
   funny_answer text,
   luck_score integer not null check (luck_score between 1 and 100),
   created_at timestamptz not null default now()
@@ -82,15 +83,61 @@ insert into public.event_settings (
 ```
 
 6. Enable Realtime for the `guests` and `event_settings` tables in Supabase under **Database > Replication**.
-7. In **Project Settings > API**, copy the project URL and anon public key.
-8. Add these environment variables in Vercel under **Settings > Environment Variables**:
+7. Create the mission engine tables:
+
+```sql
+create table public.missions (
+  id uuid primary key default gen_random_uuid(),
+  prompt text not null check (char_length(trim(prompt)) > 0),
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create table public.guest_missions (
+  id uuid primary key default gen_random_uuid(),
+  guest_id uuid not null references public.guests(id) on delete cascade,
+  mission_id uuid not null references public.missions(id) on delete cascade,
+  round_id uuid not null,
+  assigned_at timestamptz not null default now(),
+  completed_at timestamptz
+);
+
+create table public.mission_completions (
+  id uuid primary key default gen_random_uuid(),
+  guest_mission_id uuid not null unique references public.guest_missions(id) on delete cascade,
+  guest_id uuid not null references public.guests(id) on delete cascade,
+  mission_id uuid not null references public.missions(id) on delete cascade,
+  completed_at timestamptz not null default now()
+);
+
+create index guest_missions_guest_assigned_idx
+  on public.guest_missions (guest_id, assigned_at desc);
+
+create index guest_missions_round_idx
+  on public.guest_missions (round_id);
+```
+
+8. Seed starter missions:
+
+```sql
+insert into public.missions (prompt) values
+  ('Meet someone from another table.'),
+  ('Find someone wearing blue.'),
+  ('Learn one new thing about a guest.'),
+  ('Give someone a kind compliment.'),
+  ('Take a group photo with someone new.');
+```
+
+9. Enable Realtime for the `missions`, `guest_missions`, and `mission_completions` tables in Supabase under **Database > Replication**.
+10. In **Project Settings > API**, copy the project URL and anon public key.
+11. Add these environment variables in Vercel under **Settings > Environment Variables**:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-9. Redeploy the Vercel project.
+12. Redeploy the Vercel project.
 
 ## Production Check
 

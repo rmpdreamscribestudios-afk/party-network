@@ -63,7 +63,13 @@ export default function ConfirmationPage() {
         </p>
       </div>
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
-        <Link href="/join" className={primaryActionClassName}>
+        <Link
+          href={guest ? `/mission?id=${encodeURIComponent(guest.id)}` : "/mission"}
+          className={primaryActionClassName}
+        >
+          View Mission
+        </Link>
+        <Link href="/join" className={secondaryActionClassName}>
           Add Another Guest
         </Link>
         <Link href="/" className={secondaryActionClassName}>
