@@ -154,7 +154,9 @@ export async function fetchGuests(): Promise<PartyGuest[]> {
       return readLocalGuests();
     }
 
-    return (data ?? []).map(mapGuest).map(withLocalProfile);
+    const rows = Array.isArray(data) ? (data as GuestRow[]) : [];
+
+    return rows.map(mapGuest).map(withLocalProfile);
   } catch {
     return readLocalGuests();
   }
@@ -178,7 +180,9 @@ export async function fetchGuestById(id: string): Promise<PartyGuest | undefined
       return readLocalGuestById(id);
     }
 
-    return data ? withLocalProfile(mapGuest(data)) : readLocalGuestById(id);
+    const row: GuestRow | null = data;
+
+    return row ? withLocalProfile(mapGuest(row)) : readLocalGuestById(id);
   } catch {
     return readLocalGuestById(id);
   }
@@ -225,7 +229,7 @@ export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
     throw error;
   }
 
-  const insertedRow = toGuestRow(data);
+  const insertedRow: GuestRow | null = toGuestRow(data);
 
   if (!insertedRow) {
     throw new Error("Supabase guest insert returned an invalid guest row.");
