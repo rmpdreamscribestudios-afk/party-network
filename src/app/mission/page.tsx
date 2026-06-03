@@ -317,7 +317,7 @@ export default function MissionPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
                 <span className="text-sm font-medium text-stone-200">
-                  Person's first name
+                  Person&apos;s first name
                 </span>
                 <input
                   value={personFirstName}
