@@ -23,7 +23,7 @@ import {
 import type {
   Mission,
   MissionCategory,
-  MissionInput,
+  MissionInput as SupabaseMissionInput,
   MissionRoundStats
 } from "@/lib/supabase-missions";
 import {
@@ -32,8 +32,12 @@ import {
   type EventType
 } from "@/lib/event-templates";
 
-type MissionSeed = Pick<MissionInput, "prompt" | "category"> &
-  Partial<Pick<MissionInput, "isTemplate">>;
+type MissionInput = SupabaseMissionInput;
+
+type MissionSeed = Readonly<
+  Pick<MissionInput, "prompt" | "category"> &
+    Partial<Pick<MissionInput, "isTemplate">>
+>;
 
 type HostMissionEngineProps = Readonly<{
   guests: PartyGuest[];
