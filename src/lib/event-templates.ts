@@ -7,7 +7,7 @@ import type {
 } from "@/lib/connection-engine";
 
 export const eventTypes = [
-  "Party",
+  "Birthday",
   "School",
   "Church",
   "Team Building",
@@ -22,6 +22,7 @@ export type EventType = (typeof eventTypes)[number];
 export type EventTemplate = {
   type: EventType;
   suggestedTitle: string;
+  suggestedSubtitle: string;
   suggestedDescription: string;
   suggestedMissions: MissionInput[];
   icebreakers: MissionInput[];
@@ -52,9 +53,10 @@ function connectionMission(
 }
 
 export const eventTemplates: Record<EventType, EventTemplate> = {
-  Party: {
-    type: "Party",
-    suggestedTitle: "Party Network",
+  Birthday: {
+    type: "Birthday",
+    suggestedTitle: "Birthday Celebration",
+    suggestedSubtitle: "Less Scrolling. More Celebrating.",
     suggestedDescription:
       "A warm gathering that helps guests meet across tables, share stories, and make the room feel more connected.",
     suggestedMissions: [
@@ -80,7 +82,8 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
   },
   School: {
     type: "School",
-    suggestedTitle: "School Community Mixer",
+    suggestedTitle: "School Connection Experience",
+    suggestedSubtitle: "Meet classmates. Build belonging.",
     suggestedDescription:
       "A student-friendly experience for meeting across grades, sharing goals, and making the school community feel more connected.",
     suggestedMissions: [
@@ -106,7 +109,8 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
   },
   Church: {
     type: "Church",
-    suggestedTitle: "Church Community Gathering",
+    suggestedTitle: "Community Fellowship Experience",
+    suggestedSubtitle: "Connect, welcome, and grow together.",
     suggestedDescription:
       "A welcoming gathering that helps attendees connect across groups, greet newer people, and share gratitude.",
     suggestedMissions: [
@@ -132,7 +136,8 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
   },
   "Team Building": {
     type: "Team Building",
-    suggestedTitle: "Team Building Mixer",
+    suggestedTitle: "Team Building Experience",
+    suggestedSubtitle: "Break silos. Build stronger teams.",
     suggestedDescription:
       "A workplace-ready experience for cross-functional introductions, hidden talents, and practical team connection.",
     suggestedMissions: [
@@ -158,7 +163,8 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
   },
   "Community Event": {
     type: "Community Event",
-    suggestedTitle: "Community Event Mixer",
+    suggestedTitle: "Community Connection Experience",
+    suggestedSubtitle: "Turning attendance into participation.",
     suggestedDescription:
       "A local gathering that helps neighbors, volunteers, and attendees meet new people and build shared momentum.",
     suggestedMissions: [
@@ -184,7 +190,8 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
   },
   "Family Gathering": {
     type: "Family Gathering",
-    suggestedTitle: "Family Gathering",
+    suggestedTitle: "Family Gathering Experience",
+    suggestedSubtitle: "Share stories. Create memories.",
     suggestedDescription:
       "A family-centered experience for sharing stories, connecting generations, and making the gathering feel personal.",
     suggestedMissions: [
@@ -210,7 +217,8 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
   },
   "Friendship Gathering": {
     type: "Friendship Gathering",
-    suggestedTitle: "Friendship Gathering",
+    suggestedTitle: "Friendship Experience",
+    suggestedSubtitle: "More laughter. More connection.",
     suggestedDescription:
       "A casual experience for helping friends mix beyond their usual circles, share recommendations, and create easy moments together.",
     suggestedMissions: [
@@ -236,7 +244,8 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
   },
   Conference: {
     type: "Conference",
-    suggestedTitle: "Conference Networking Session",
+    suggestedTitle: "Conference Engagement Experience",
+    suggestedSubtitle: "Meet people beyond the name tag.",
     suggestedDescription:
       "A conference experience for meeting across organizations, exchanging useful ideas, and surfacing shared goals.",
     suggestedMissions: [
@@ -262,7 +271,7 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
   }
 };
 
-export const defaultEventType: EventType = "Party";
+export const defaultEventType: EventType = "Birthday";
 
 export function isEventType(value?: string | null): value is EventType {
   return eventTypes.includes(value as EventType);
@@ -278,6 +287,10 @@ export function getSafeEventType(
 
   if (value === "Corporate") {
     return "Team Building";
+  }
+
+  if (value === "Party") {
+    return "Birthday";
   }
 
   if (value === "Family Reunion") {

@@ -196,7 +196,7 @@ export default function HostPage() {
     const template = getEventTemplate(nextEventType);
     setEventType(nextEventType);
     setEventTitle(template.suggestedTitle);
-    setEventSubtitle(template.suggestedDescription);
+    setEventSubtitle(template.suggestedSubtitle);
   }
 
   async function handleDeleteGuest(id: string) {

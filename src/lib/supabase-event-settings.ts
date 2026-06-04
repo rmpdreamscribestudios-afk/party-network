@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase-guests";
 import { emitPartyUpdate } from "@/lib/party-storage";
 import {
   defaultEventType,
+  getEventTemplate,
   type EventType,
   getSafeEventType
 } from "@/lib/event-templates";
@@ -36,13 +37,6 @@ type EventSettingsUpsert = {
   event_type: EventType;
 };
 
-type LegacyEventSettingsUpsert = {
-  id: string;
-  title: string;
-  subtitle: string | null;
-  date: string | null;
-};
-
 export type EventSettingsLoadResult = {
   settings: EventSettings;
   hasEventSettings: boolean;
@@ -51,10 +45,11 @@ export type EventSettingsLoadResult = {
 
 export const EVENT_SETTINGS_ID = "current";
 export const PARTY_EVENT_SETTINGS_KEY = "party-network-event-settings";
+const defaultEventTemplate = getEventTemplate(defaultEventType);
 
 export const defaultEventSettings: EventSettings = {
-  title: "Party Network",
-  subtitle: "Less Scrolling. More Connecting.",
+  title: defaultEventTemplate.suggestedTitle,
+  subtitle: defaultEventTemplate.suggestedSubtitle,
   eventType: defaultEventType
 };
 
@@ -146,44 +141,8 @@ export async function saveEventSettings(settings: EventSettings) {
     .select("*")
     .single();
 
-  if (!error) {
-    emitPartyUpdate();
-    return;
-  }
-
-  const eventColumnsOnlyPayload = {
-    id: EVENT_SETTINGS_ID,
-    event_title: settings.title.trim(),
-    event_subtitle: settings.subtitle.trim() || null,
-    event_date: settings.date || null
-  };
-
-  const { error: eventColumnsOnlyError } = await supabase
-    .from("event_settings")
-    .upsert(eventColumnsOnlyPayload, { onConflict: "id" })
-    .select("*")
-    .single();
-
-  if (!eventColumnsOnlyError) {
-    emitPartyUpdate();
-    return;
-  }
-
-  const legacyPayload: LegacyEventSettingsUpsert = {
-    id: EVENT_SETTINGS_ID,
-    title: settings.title.trim(),
-    subtitle: settings.subtitle.trim() || null,
-    date: settings.date || null
-  };
-
-  const { error: legacyError } = await supabase
-    .from("event_settings")
-    .upsert(legacyPayload, { onConflict: "id" })
-    .select("*")
-    .single();
-
-  if (legacyError) {
-    throw new Error(legacyError.message || eventColumnsOnlyError.message || error.message);
+  if (error) {
+    throw new Error(error.message);
   }
 
   emitPartyUpdate();
