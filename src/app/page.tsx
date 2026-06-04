@@ -25,13 +25,13 @@ export default function LandingPage() {
           Host Dashboard
         </Link>
       </div>
-      <div className="mt-8 grid gap-3 text-left text-sm text-stone-300 sm:grid-cols-3">
+      <div className="mt-8 grid gap-3 text-left text-sm text-slate-200 sm:grid-cols-3">
         {["Connect", "Participate", "Remember"].map((item) => (
           <div
             key={item}
-            className="rounded-md border border-gold/25 bg-black/40 p-4 backdrop-blur"
+            className="pn-card p-4"
           >
-            <p className="font-bold uppercase text-gold">{item}</p>
+            <p className="font-bold uppercase text-party-teal">{item}</p>
             <p className="mt-2 leading-6">
               {item === "Connect"
                 ? "Guests join from any phone and become part of the shared room."
