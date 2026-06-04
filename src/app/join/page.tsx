@@ -6,6 +6,7 @@ import { primaryActionClassName } from "@/components/button-styles";
 import { ExperienceShell } from "@/components/experience-shell";
 import { FormField } from "@/components/form-field";
 import { createGuest } from "@/lib/party-storage";
+import { assignConnectionMissionToGuest } from "@/lib/supabase-missions";
 import { insertGuest } from "@/lib/supabase-guests";
 import { useEventSettings } from "@/lib/use-event-settings";
 
@@ -80,6 +81,12 @@ export default function JoinPage() {
           answer
         })
       );
+      try {
+        await assignConnectionMissionToGuest(guest.id);
+      } catch {
+        // Registration should still succeed if the host has not installed
+        // the Supabase mission tables yet.
+      }
       router.push(`/confirmation?id=${encodeURIComponent(guest.id)}`);
     } catch (error) {
       setError(getRegistrationErrorMessage(error));

@@ -5,6 +5,10 @@ import type { PartyGuest } from "@/lib/party-storage";
 import { supabase } from "@/lib/supabase-guests";
 
 export const missionCategories = [
+  "INTRODUCTION",
+  "DISCOVERY",
+  "FRIENDSHIP",
+  "TEAMWORK",
   "Icebreaker",
   "Friendship",
   "Family",
@@ -51,12 +55,23 @@ export type GuestMission = {
   mission: Mission;
 };
 
+export type MissionAssignment = GuestMission & {
+  guestName?: string;
+};
+
 export type MissionRoundStats = {
   round?: MissionRound;
   totalGuests: number;
   assigned: number;
   completed: number;
   completionPercentage: number;
+};
+
+export type MissionAssignmentStats = {
+  assigned: number;
+  completed: number;
+  completionPercentage: number;
+  assignments: MissionAssignment[];
 };
 
 type MissionRow = {
@@ -92,6 +107,17 @@ type GuestMissionWithMissionRow = GuestMissionRow & {
   missions: MissionRow | MissionRow[] | null;
 };
 
+type GuestMissionWithDetailsRow = GuestMissionWithMissionRow & {
+  guests:
+    | {
+        name: string;
+      }
+    | Array<{
+        name: string;
+      }>
+    | null;
+};
+
 export type MissionInput = {
   prompt: string;
   category: MissionCategory;
@@ -106,61 +132,81 @@ export type MissionCompletionInput = {
 
 export const missionExamples: MissionInput[] = [
   {
-    prompt: "Introduce yourself to someone you haven't met.",
-    category: "Meet Someone New",
+    prompt: "Introduce yourself to someone you have never met.",
+    category: "INTRODUCTION",
     isTemplate: true
   },
   {
-    prompt: "Learn their hometown.",
-    category: "Meet Someone New",
+    prompt: "Learn a guest's first name.",
+    category: "INTRODUCTION",
     isTemplate: true
   },
   {
-    prompt: "Find someone who enjoys the same hobby.",
-    category: "Shared Interests",
+    prompt: "Meet someone from a different table.",
+    category: "INTRODUCTION",
     isTemplate: true
   },
   {
-    prompt: "Find someone who likes the same food.",
-    category: "Shared Interests",
+    prompt: "Find someone born in the same month.",
+    category: "DISCOVERY",
     isTemplate: true
   },
   {
-    prompt: "Ask someone about a memorable life moment.",
-    category: "Story Exchange",
+    prompt: "Find someone who travelled the farthest.",
+    category: "DISCOVERY",
     isTemplate: true
   },
   {
-    prompt: "Learn one lesson they wish they knew earlier.",
-    category: "Story Exchange",
+    prompt: "Find someone attending their first event.",
+    category: "DISCOVERY",
     isTemplate: true
   },
   {
-    prompt: "Give a genuine compliment.",
-    category: "Kindness Challenge",
+    prompt: "Take a selfie with a new friend.",
+    category: "FRIENDSHIP",
     isTemplate: true
   },
   {
-    prompt: "Thank someone for something they do.",
-    category: "Kindness Challenge",
+    prompt: "Learn one interesting fact about another guest.",
+    category: "FRIENDSHIP",
     isTemplate: true
   },
   {
-    prompt: "Introduce two people who don't know each other.",
-    category: "Community Builder",
+    prompt: "Exchange contact information with someone new.",
+    category: "FRIENDSHIP",
     isTemplate: true
   },
   {
-    prompt: "Welcome a newcomer.",
-    category: "Community Builder",
+    prompt: "Form a group of three strangers.",
+    category: "TEAMWORK",
     isTemplate: true
   },
   {
-    prompt: "Meet someone from another department or team.",
-    category: "Team Connector",
+    prompt: "Complete a challenge together.",
+    category: "TEAMWORK",
+    isTemplate: true
+  },
+  {
+    prompt: "Introduce two people who have never met.",
+    category: "TEAMWORK",
     isTemplate: true
   }
 ];
+
+export const connectionMissionCategories: readonly MissionCategory[] = [
+  "INTRODUCTION",
+  "DISCOVERY",
+  "FRIENDSHIP",
+  "TEAMWORK"
+] as const;
+
+function isConnectionMissionCategory(
+  category: MissionCategory
+): category is (typeof connectionMissionCategories)[number] {
+  return connectionMissionCategories.some(
+    (connectionCategory) => connectionCategory === category
+  );
+}
 
 function requireSupabase() {
   if (!supabase) {
@@ -216,6 +262,11 @@ function createRoundId() {
     : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function getGuestNameFromJoinedRow(row: GuestMissionWithDetailsRow) {
+  const guestRow = Array.isArray(row.guests) ? row.guests[0] : row.guests;
+  return guestRow?.name;
+}
+
 function shuffle<T>(items: T[]): T[] {
   const shuffled = [...items];
 
@@ -266,6 +317,26 @@ export async function createMission(input: MissionInput): Promise<Mission> {
   }
 
   return mapMission(data);
+}
+
+export async function ensureConnectionMissions(): Promise<Mission[]> {
+  const existingMissions = await fetchMissions();
+  const existingPrompts = new Set(
+    existingMissions.map((mission) => mission.prompt.trim().toLowerCase())
+  );
+  const missingMissions = missionExamples.filter(
+    (mission) => !existingPrompts.has(mission.prompt.trim().toLowerCase())
+  );
+
+  if (missingMissions.length) {
+    await Promise.all(missingMissions.map((mission) => createMission(mission)));
+  }
+
+  const nextMissions = missingMissions.length ? await fetchMissions() : existingMissions;
+
+  return nextMissions.filter((mission) =>
+    isConnectionMissionCategory(mission.category)
+  );
 }
 
 export async function updateMission(
@@ -357,6 +428,87 @@ export async function launchMissionRound(
   }
 
   return roundId;
+}
+
+async function fetchOrCreateConnectionRound(): Promise<MissionRound> {
+  const client = requireSupabase();
+  const { data: round, error } = await client
+    .from("mission_rounds")
+    .select("id, started_at, ends_at, duration_minutes, status")
+    .eq("status", "active")
+    .order("started_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (round) {
+    return mapMissionRound(round);
+  }
+
+  const startedAt = new Date();
+  const endsAt = new Date(startedAt.getTime() + 15 * 60 * 1000);
+  const { data: newRound, error: roundError } = await client
+    .from("mission_rounds")
+    .insert({
+      started_at: startedAt.toISOString(),
+      ends_at: endsAt.toISOString(),
+      duration_minutes: 15,
+      status: "active"
+    })
+    .select("id, started_at, ends_at, duration_minutes, status")
+    .single();
+
+  if (roundError) {
+    throw roundError;
+  }
+
+  return mapMissionRound(newRound);
+}
+
+function pickMissionForGuest(guestId: string, missions: Mission[]) {
+  const seed = [...guestId].reduce(
+    (total, character) => total + character.charCodeAt(0),
+    0
+  );
+
+  return missions[seed % missions.length];
+}
+
+export async function assignConnectionMissionToGuest(
+  guestId: string
+): Promise<GuestMission | undefined> {
+  const existingMission = await fetchLatestGuestMission(guestId);
+
+  if (existingMission) {
+    return existingMission;
+  }
+
+  const client = requireSupabase();
+  const [round, missions] = await Promise.all([
+    fetchOrCreateConnectionRound(),
+    ensureConnectionMissions()
+  ]);
+  const activeMissions = missions.filter((mission) => mission.isActive);
+
+  if (!activeMissions.length) {
+    throw new Error("No active connection missions are available.");
+  }
+
+  const mission = pickMissionForGuest(guestId, activeMissions);
+  const { error } = await client.from("guest_missions").insert({
+    guest_id: guestId,
+    mission_id: mission.id,
+    round_id: round.id
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return fetchLatestGuestMission(guestId);
 }
 
 export async function fetchLatestGuestMission(
@@ -458,6 +610,45 @@ export async function fetchActiveMissionRoundStats(): Promise<MissionRoundStats>
     completionPercentage: nextAssigned
       ? Math.round((nextCompleted / nextAssigned) * 100)
       : 0
+  };
+}
+
+export async function fetchMissionAssignmentStats(): Promise<MissionAssignmentStats> {
+  const client = requireSupabase();
+  const { data, error } = await client
+    .from("guest_missions")
+    .select(
+      "id, guest_id, mission_id, round_id, assigned_at, completed_at, notes, photo_proof_url, missions(id, prompt, category, is_active, is_template, created_at, updated_at), guests(name)"
+    )
+    .order("assigned_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  const assignments = ((data ?? []) as GuestMissionWithDetailsRow[])
+    .map((row) => {
+      const mission = getMissionFromJoinedRow(row);
+
+      if (!mission || !isConnectionMissionCategory(mission.category)) {
+        return undefined;
+      }
+
+      return {
+        ...mapGuestMission(row, mission),
+        guestName: getGuestNameFromJoinedRow(row)
+      };
+    })
+    .filter((assignment): assignment is MissionAssignment => Boolean(assignment));
+  const completed = assignments.filter((assignment) => assignment.completedAt).length;
+
+  return {
+    assigned: assignments.length,
+    completed,
+    completionPercentage: assignments.length
+      ? Math.round((completed / assignments.length) * 100)
+      : 0,
+    assignments
   };
 }
 

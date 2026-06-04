@@ -108,6 +108,10 @@ create table public.missions (
   prompt text not null check (char_length(trim(prompt)) > 0),
   category text not null default 'Icebreaker' check (
     category in (
+      'INTRODUCTION',
+      'DISCOVERY',
+      'FRIENDSHIP',
+      'TEAMWORK',
       'Icebreaker',
       'Friendship',
       'Family',
@@ -181,17 +185,18 @@ create index connection_records_mission_idx
 
 ```sql
 insert into public.missions (prompt, category, is_template) values
-  ('Introduce yourself to someone you haven''t met.', 'Meet Someone New', true),
-  ('Learn their hometown.', 'Meet Someone New', true),
-  ('Find someone who enjoys the same hobby.', 'Shared Interests', true),
-  ('Find someone who likes the same food.', 'Shared Interests', true),
-  ('Ask someone about a memorable life moment.', 'Story Exchange', true),
-  ('Learn one lesson they wish they knew earlier.', 'Story Exchange', true),
-  ('Give a genuine compliment.', 'Kindness Challenge', true),
-  ('Thank someone for something they do.', 'Kindness Challenge', true),
-  ('Introduce two people who don''t know each other.', 'Community Builder', true),
-  ('Welcome a newcomer.', 'Community Builder', true),
-  ('Meet someone from another department or team.', 'Team Connector', true);
+  ('Introduce yourself to someone you have never met.', 'INTRODUCTION', true),
+  ('Learn a guest''s first name.', 'INTRODUCTION', true),
+  ('Meet someone from a different table.', 'INTRODUCTION', true),
+  ('Find someone born in the same month.', 'DISCOVERY', true),
+  ('Find someone who travelled the farthest.', 'DISCOVERY', true),
+  ('Find someone attending their first event.', 'DISCOVERY', true),
+  ('Take a selfie with a new friend.', 'FRIENDSHIP', true),
+  ('Learn one interesting fact about another guest.', 'FRIENDSHIP', true),
+  ('Exchange contact information with someone new.', 'FRIENDSHIP', true),
+  ('Form a group of three strangers.', 'TEAMWORK', true),
+  ('Complete a challenge together.', 'TEAMWORK', true),
+  ('Introduce two people who have never met.', 'TEAMWORK', true);
 ```
 
 10. Enable Realtime for the `missions`, `mission_rounds`, `guest_missions`, and `connection_records` tables in Supabase under **Database > Replication**.

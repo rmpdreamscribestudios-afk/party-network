@@ -254,6 +254,9 @@ export default function HostPage() {
             <Link href="/live" className={secondaryActionClassName}>
               Live Display
             </Link>
+            <Link href="/host/missions" className={secondaryActionClassName}>
+              Missions
+            </Link>
             <Link href="/raffle" className={primaryActionClassName}>
               Live Draw
             </Link>

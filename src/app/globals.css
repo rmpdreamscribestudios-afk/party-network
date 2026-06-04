@@ -56,7 +56,7 @@ button:disabled {
 
 @layer components {
   .pn-surface {
-    @apply border border-white/15 bg-party-navy/72 shadow-dashboard backdrop-blur;
+    @apply border border-white/15 bg-party-navy/75 shadow-dashboard backdrop-blur;
   }
 
   .pn-card {
@@ -64,15 +64,15 @@ button:disabled {
   }
 
   .pn-mission-card {
-    @apply rounded-md border border-party-teal/40 bg-party-navy/78 p-6 shadow-celebration backdrop-blur;
+    @apply rounded-md border border-party-teal/40 bg-party-navy/75 p-6 shadow-celebration backdrop-blur;
   }
 
   .pn-dashboard-card {
-    @apply rounded-md border border-party-blue/30 bg-party-navy/72 p-5 shadow-dashboard backdrop-blur;
+    @apply rounded-md border border-party-blue/30 bg-party-navy/75 p-5 shadow-dashboard backdrop-blur;
   }
 
   .pn-guest-card {
-    @apply rounded-md border border-party-teal/35 bg-party-navy/74 p-6 shadow-celebration backdrop-blur;
+    @apply rounded-md border border-party-teal/35 bg-party-navy/75 p-6 shadow-celebration backdrop-blur;
   }
 
   .pn-stat-card {
@@ -80,11 +80,11 @@ button:disabled {
   }
 
   .pn-empty-state {
-    @apply rounded-md border border-dashed border-party-teal/45 bg-party-navy/44 p-8 text-center text-slate-200;
+    @apply rounded-md border border-dashed border-party-teal/45 bg-party-navy/45 p-8 text-center text-slate-200;
   }
 
   .pn-loading-state {
-    @apply rounded-md border border-party-blue/30 bg-party-navy/52 p-3 text-sm font-semibold text-party-soft;
+    @apply rounded-md border border-party-blue/30 bg-party-navy/50 p-3 text-sm font-semibold text-party-soft;
   }
 
   .pn-success-state {
@@ -146,6 +146,60 @@ button:disabled {
   opacity: 0.9;
 }
 
+.pn-mission-complete-burst {
+  position: relative;
+  min-height: 4rem;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  border: 1px solid rgba(34, 197, 94, 0.45);
+  background:
+    linear-gradient(90deg, rgba(34, 197, 94, 0.18), rgba(56, 178, 172, 0.18)),
+    rgba(16, 33, 58, 0.54);
+}
+
+.pn-mission-complete-burst::before {
+  content: "Mission Complete";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  color: var(--pn-soft-background);
+  text-transform: uppercase;
+}
+
+.pn-mission-complete-burst span {
+  position: absolute;
+  top: -0.75rem;
+  width: 0.65rem;
+  height: 1.2rem;
+  border-radius: 0.125rem;
+  animation: mission-confetti 1.6s ease-in-out infinite;
+}
+
+.pn-mission-complete-burst span:nth-child(1) {
+  left: 15%;
+  background: #f59e0b;
+}
+
+.pn-mission-complete-burst span:nth-child(2) {
+  left: 38%;
+  background: #38b2ac;
+  animation-delay: 0.18s;
+}
+
+.pn-mission-complete-burst span:nth-child(3) {
+  left: 62%;
+  background: #22c55e;
+  animation-delay: 0.32s;
+}
+
+.pn-mission-complete-burst span:nth-child(4) {
+  left: 82%;
+  background: #3182ce;
+  animation-delay: 0.46s;
+}
+
 @keyframes slow-spin {
   to {
     transform: rotate(360deg);
@@ -189,5 +243,21 @@ button:disabled {
       47% 125%,
       82% 118%,
       24% 122%;
+  }
+}
+
+@keyframes mission-confetti {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(0.5rem, 5rem, 0) rotate(260deg);
   }
 }

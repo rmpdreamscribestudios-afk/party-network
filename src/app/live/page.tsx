@@ -169,7 +169,7 @@ export default function LivePage() {
           {displayGuests.slice(0, 18).map((guest, index) => (
             <span
               key={`${guest.id}-${index}`}
-              className="floating-name absolute rounded-md border border-party-teal/35 bg-party-navy/62 px-5 py-3 text-2xl font-black text-party-soft shadow-celebration backdrop-blur md:text-5xl"
+              className="floating-name absolute rounded-md border border-party-teal/35 bg-party-navy/60 px-5 py-3 text-2xl font-black text-party-soft shadow-celebration backdrop-blur md:text-5xl"
               style={{
                 top: `${(index * 17) % 78}%`,
                 left: `${(index * 23) % 70}%`,

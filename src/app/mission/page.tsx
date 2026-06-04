@@ -26,6 +26,7 @@ import type {
   MatchSuggestion
 } from "@/lib/connection-engine";
 import {
+  assignConnectionMissionToGuest,
   completeGuestMission,
   fetchLatestGuestMission
 } from "@/lib/supabase-missions";
@@ -74,6 +75,9 @@ export default function MissionPage() {
 
         try {
           mission = await fetchLatestGuestMission(guestId);
+          if (!mission && guest) {
+            mission = await assignConnectionMissionToGuest(guestId);
+          }
         } catch {
           mission = undefined;
         }
@@ -188,18 +192,41 @@ export default function MissionPage() {
       subtitle={settings.subtitle}
     >
       <div className="pn-mission-card text-left">
-        <p className="text-sm font-bold uppercase tracking-normal text-party-teal">
-          {guestName}
-        </p>
-        <h2 className="mt-3 text-2xl font-black leading-tight text-party-soft">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-normal text-party-teal">
+              {guestName}
+            </p>
+            {guestMission ? (
+              <p className="mt-3 inline-flex rounded-md border border-party-gold/40 bg-party-gold/10 px-3 py-1 text-xs font-black uppercase text-party-gold">
+                {guestMission.mission.category}
+              </p>
+            ) : null}
+          </div>
+          <div className="grid h-16 w-16 shrink-0 place-items-center rounded-full border-4 border-party-teal/40 bg-party-navy/80">
+            <span className="text-lg font-black text-party-teal">
+              {isComplete ? "100%" : guestMission ? "50%" : "0%"}
+            </span>
+          </div>
+        </div>
+        <h2 className="mt-4 text-2xl font-black leading-tight text-party-soft">
           {guestMission?.mission.prompt ?? "Mission pending"}
         </h2>
-        {guestMission ? (
-          <p className="mt-3 inline-flex rounded-md border border-party-gold/40 bg-party-gold/10 px-3 py-1 text-sm font-bold text-party-gold">
-            {guestMission.mission.category}
-          </p>
-        ) : null}
+        <div className="mt-5 h-3 overflow-hidden rounded-full bg-party-blue/25">
+          <div
+            className="h-full rounded-full bg-party-teal transition-all duration-500"
+            style={{ width: isComplete ? "100%" : guestMission ? "50%" : "0%" }}
+          />
+        </div>
         <p className="mt-4 text-base leading-7 text-slate-200">{message}</p>
+        {isComplete ? (
+          <div className="pn-mission-complete-burst mt-5" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+        ) : null}
         {guestMission ? (
           <div className="mt-6 space-y-4">
             <label className="block">
