@@ -216,7 +216,7 @@ export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
     luck_score: guest.luckScore
   };
 
-  let { data, error } = await insertGuestRow(payload, profileGuestSelect);
+  const { data, error } = await insertGuestRow(payload, profileGuestSelect);
 
   if (error) {
     const fallbackPayload: GuestInsert = {
@@ -225,13 +225,26 @@ export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
       luck_score: guest.luckScore
     };
     const fallback = await insertGuestRow(fallbackPayload, baseGuestSelect);
+    const fallbackRow: GuestRow | null = toGuestRow(fallback.data);
 
-    data = fallback.data;
-    error = fallback.error;
-  }
+    if (fallback.error) {
+      throw fallback.error;
+    }
 
-  if (error) {
-    throw error;
+    if (!fallbackRow) {
+      throw new Error("Supabase guest insert returned an invalid guest row.");
+    }
+
+    const insertedGuest = {
+      ...mapGuest(fallbackRow),
+      firstName: guest.firstName,
+      interests: guest.interests,
+      favoriteHobby: guest.favoriteHobby,
+      funFact: guest.funFact
+    };
+
+    addLocalGuest(insertedGuest);
+    return insertedGuest;
   }
 
   const insertedRow: GuestRow | null = toGuestRow(data);
