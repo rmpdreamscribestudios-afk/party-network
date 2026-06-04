@@ -5,9 +5,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        "party-navy": "#1A365D",
+        "party-navy": "#04234C",
         "party-blue": "#3182CE",
-        "party-teal": "#38B2AC",
+        "party-teal": "#1DB6B6",
         "party-green": "#22C55E",
         "party-gold": "#F59E0B",
         "party-soft": "#F8FAFC",
