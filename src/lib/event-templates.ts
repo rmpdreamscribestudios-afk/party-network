@@ -7,7 +7,7 @@ import type {
 } from "@/lib/connection-engine";
 
 export const eventTypes = [
-  "Birthday",
+  "Party",
   "School",
   "Church",
   "Team Building",
@@ -52,30 +52,30 @@ function connectionMission(
 }
 
 export const eventTemplates: Record<EventType, EventTemplate> = {
-  Birthday: {
-    type: "Birthday",
-    suggestedTitle: "Birthday Celebration",
+  Party: {
+    type: "Party",
+    suggestedTitle: "Party Network",
     suggestedDescription:
-      "A warm celebration that helps guests meet across tables, share memories, and make the guest of honor feel seen.",
+      "A warm gathering that helps guests meet across tables, share stories, and make the room feel more connected.",
     suggestedMissions: [
       mission("Meet someone from another table.", "Friendship"),
-      mission("Share a birthday memory.", "Kindness")
+      mission("Share a favorite event memory.", "Kindness")
     ],
     icebreakers: [
-      mission("Ask someone for their favorite birthday memory.", "Icebreaker"),
+      mission("Ask someone for a favorite celebration memory.", "Icebreaker"),
       mission("Find someone who shares your favorite party food.", "Icebreaker")
     ],
     participationActivities: [
-      mission("Create a three-person birthday cheer and perform it together.", "Friendship"),
+      mission("Create a three-person cheer and perform it together.", "Friendship"),
       mission("Introduce two guests who should take a photo together tonight.", "Friendship")
     ],
     hostPrompts: [
-      mission("Invite guests to share quick birthday wishes before the raffle.", "Kindness"),
+      mission("Invite guests to share quick good wishes before the raffle.", "Kindness"),
       mission("Ask the room to point out one hidden helper who made the celebration happen.", "Kindness")
     ],
     connectionMissions: [
-      connectionMission("birthday-other-table", "Meet someone from another table.", "Meet Someone New"),
-      connectionMission("birthday-memory", "Share a birthday memory.", "Story Exchange")
+      connectionMission("party-other-table", "Meet someone from another table.", "Meet Someone New"),
+      connectionMission("party-memory", "Share a favorite event memory.", "Story Exchange")
     ]
   },
   School: {
@@ -262,7 +262,7 @@ export const eventTemplates: Record<EventType, EventTemplate> = {
   }
 };
 
-export const defaultEventType: EventType = "Birthday";
+export const defaultEventType: EventType = "Party";
 
 export function isEventType(value?: string | null): value is EventType {
   return eventTypes.includes(value as EventType);

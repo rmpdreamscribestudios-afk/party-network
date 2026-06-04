@@ -45,6 +45,22 @@ import {
   type EventType
 } from "@/lib/event-templates";
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+
+    if (typeof message === "string" && message.trim()) {
+      return message;
+    }
+  }
+
+  return "Unknown error.";
+}
+
 export default function HostPage() {
   const router = useRouter();
   const { settings, reloadSettings } = useEventSettings();
@@ -149,8 +165,8 @@ export default function HostPage() {
       setName("");
       setAnswer("");
       await loadGuests();
-    } catch {
-      setStatusMessage("Could not add guest.");
+    } catch (error) {
+      setStatusMessage(`Could not add guest: ${getErrorMessage(error)}`);
     }
   }
 
@@ -169,8 +185,8 @@ export default function HostPage() {
       });
       await reloadSettings();
       setStatusMessage("Event settings saved.");
-    } catch {
-      setStatusMessage("Could not save event settings.");
+    } catch (error) {
+      setStatusMessage(`Could not save event settings: ${getErrorMessage(error)}`);
     } finally {
       setIsSavingSettings(false);
     }
@@ -189,8 +205,8 @@ export default function HostPage() {
     try {
       await deleteGuest(id);
       await loadGuests();
-    } catch {
-      setStatusMessage("Could not delete guest.");
+    } catch (error) {
+      setStatusMessage(getErrorMessage(error));
     }
   }
 
@@ -206,8 +222,8 @@ export default function HostPage() {
       await clearGuests();
       await loadGuests();
       setStatusMessage("All guests cleared.");
-    } catch {
-      setStatusMessage("Could not clear guests.");
+    } catch (error) {
+      setStatusMessage(getErrorMessage(error));
     } finally {
       setIsResettingEvent(false);
     }
@@ -232,8 +248,8 @@ export default function HostPage() {
       setEventSubtitle(defaultEventSettings.subtitle);
       await reloadSettings();
       setStatusMessage("Event title and subtitle reset.");
-    } catch {
-      setStatusMessage("Could not reset event title and subtitle.");
+    } catch (error) {
+      setStatusMessage(`Could not reset event title and subtitle: ${getErrorMessage(error)}`);
     } finally {
       setIsResettingEvent(false);
     }
@@ -264,8 +280,8 @@ export default function HostPage() {
       await loadGuests();
       setRaffleState(initialRaffleState);
       setStatusMessage("Event data reset.");
-    } catch {
-      setStatusMessage("Could not reset event data.");
+    } catch (error) {
+      setStatusMessage(`Could not reset event data: ${getErrorMessage(error)}`);
     } finally {
       setIsResettingEvent(false);
     }

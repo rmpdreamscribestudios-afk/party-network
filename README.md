@@ -76,7 +76,7 @@ create table public.event_settings (
   event_title text not null,
   event_subtitle text,
   event_date date,
-  event_type text not null default 'Birthday',
+  event_type text not null default 'Party',
   updated_at timestamptz not null default now()
 );
 ```
@@ -93,9 +93,9 @@ insert into public.event_settings (
 ) values (
   'current',
   'Party Network',
-  'Helping people connect, participate, and create meaningful memories together.',
+  'Less Scrolling. More Connecting.',
   null,
-  'Birthday'
+  'Party'
 );
 ```
 

@@ -69,68 +69,22 @@ function getSettingsValue(...values: Array<string | null | undefined>) {
 }
 
 function mapEventSettings(row: EventSettingsRow): EventSettings {
-  const localEventType = readLocalEventSettings().settings.eventType;
   const rowEventType = getSettingsValue(row.event_type, row.type);
+  const title = getSettingsValue(row.event_title, row.title);
+  const subtitle = getSettingsValue(row.event_subtitle, row.subtitle);
 
   return {
-    title: getSettingsValue(row.event_title, row.title),
-    subtitle: getSettingsValue(row.event_subtitle, row.subtitle),
+    title: title || defaultEventSettings.title,
+    subtitle: subtitle || defaultEventSettings.subtitle,
     date: row.event_date ?? row.date ?? undefined,
-    eventType: getSafeEventType(rowEventType, localEventType)
+    eventType: getSafeEventType(rowEventType, defaultEventType)
   };
 }
 
-function readLocalEventSettings(): EventSettingsLoadResult {
-  if (typeof window === "undefined") {
-    return {
-      settings: defaultEventSettings,
-      hasEventSettings: false,
-      source: "default"
-    };
+function clearLocalEventSettings() {
+  if (typeof window !== "undefined") {
+    window.localStorage.removeItem(PARTY_EVENT_SETTINGS_KEY);
   }
-
-  try {
-    const rawSettings = window.localStorage.getItem(PARTY_EVENT_SETTINGS_KEY);
-    if (!rawSettings) {
-      return {
-        settings: defaultEventSettings,
-        hasEventSettings: false,
-        source: "default"
-      };
-    }
-
-    const settings = JSON.parse(rawSettings) as Partial<EventSettings>;
-
-    return {
-      settings: {
-        title: settings.title?.trim() ?? "",
-        subtitle: settings.subtitle?.trim() ?? "",
-        date: settings.date || undefined,
-        eventType: getSafeEventType(settings.eventType, defaultEventType)
-      },
-      hasEventSettings: true,
-      source: "local"
-    };
-  } catch {
-    return {
-      settings: defaultEventSettings,
-      hasEventSettings: false,
-      source: "default"
-    };
-  }
-}
-
-function writeLocalEventSettings(settings: EventSettings) {
-  window.localStorage.setItem(
-    PARTY_EVENT_SETTINGS_KEY,
-    JSON.stringify({
-      title: settings.title.trim(),
-      subtitle: settings.subtitle.trim(),
-      date: settings.date || undefined,
-      eventType: settings.eventType
-    })
-  );
-  emitPartyUpdate();
 }
 
 export async function fetchEventSettings(): Promise<EventSettings> {
@@ -138,8 +92,14 @@ export async function fetchEventSettings(): Promise<EventSettings> {
 }
 
 export async function fetchEventSettingsLoadResult(): Promise<EventSettingsLoadResult> {
+  clearLocalEventSettings();
+
   if (!supabase) {
-    return readLocalEventSettings();
+    return {
+      settings: defaultEventSettings,
+      hasEventSettings: false,
+      source: "default"
+    };
   }
 
   const { data, error } = await supabase
@@ -166,12 +126,10 @@ export async function fetchEventSettingsLoadResult(): Promise<EventSettingsLoadR
 }
 
 export async function saveEventSettings(settings: EventSettings) {
-  if (typeof window !== "undefined") {
-    writeLocalEventSettings(settings);
-  }
+  clearLocalEventSettings();
 
   if (!supabase) {
-    return;
+    throw new Error("Supabase is not configured. Event settings can only be saved to the event_settings table.");
   }
 
   const payload: EventSettingsUpsert = {
@@ -193,6 +151,24 @@ export async function saveEventSettings(settings: EventSettings) {
     return;
   }
 
+  const eventColumnsOnlyPayload = {
+    id: EVENT_SETTINGS_ID,
+    event_title: settings.title.trim(),
+    event_subtitle: settings.subtitle.trim() || null,
+    event_date: settings.date || null
+  };
+
+  const { error: eventColumnsOnlyError } = await supabase
+    .from("event_settings")
+    .upsert(eventColumnsOnlyPayload, { onConflict: "id" })
+    .select("*")
+    .single();
+
+  if (!eventColumnsOnlyError) {
+    emitPartyUpdate();
+    return;
+  }
+
   const legacyPayload: LegacyEventSettingsUpsert = {
     id: EVENT_SETTINGS_ID,
     title: settings.title.trim(),
@@ -207,7 +183,7 @@ export async function saveEventSettings(settings: EventSettings) {
     .single();
 
   if (legacyError) {
-    throw legacyError;
+    throw new Error(legacyError.message || eventColumnsOnlyError.message || error.message);
   }
 
   emitPartyUpdate();

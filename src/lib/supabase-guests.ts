@@ -290,10 +290,18 @@ export async function deleteGuest(id: string) {
     return;
   }
 
-  const { error } = await supabase.from("guests").delete().eq("id", id);
+  const { data, error } = await supabase
+    .from("guests")
+    .delete()
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     throw error;
+  }
+
+  if (!data?.length) {
+    throw new Error("Guest was not deleted. Check Supabase delete permissions for the guests table.");
   }
 
   deleteLocalGuest(id);
@@ -305,7 +313,11 @@ export async function clearGuests() {
     return;
   }
 
-  const { error } = await supabase.from("guests").delete().not("id", "is", null);
+  const { error } = await supabase
+    .from("guests")
+    .delete()
+    .not("id", "is", null)
+    .select("id");
 
   if (error) {
     throw error;
