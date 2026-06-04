@@ -155,12 +155,18 @@ export async function fetchGuests(): Promise<PartyGuest[]> {
   }
 
   try {
-    let { data, error } = await selectGuests(profileGuestSelect);
+    const { data, error } = await selectGuests(profileGuestSelect);
 
     if (error) {
-      const fallback = await selectGuests(baseGuestSelect);
-      data = fallback.data;
-      error = fallback.error;
+      const fallbackResult = await selectGuests(baseGuestSelect);
+
+      if (fallbackResult.error) {
+        return readLocalGuests();
+      }
+
+      const fallbackRows = Array.isArray(fallbackResult.data) ? (fallbackResult.data as GuestRow[]) : [];
+
+      return fallbackRows.map(mapGuest).map(withLocalProfile);
     }
 
     if (error) {
@@ -181,12 +187,18 @@ export async function fetchGuestById(id: string): Promise<PartyGuest | undefined
   }
 
   try {
-    let { data, error } = await selectGuestById(id, profileGuestSelect);
+    const { data, error } = await selectGuestById(id, profileGuestSelect);
 
     if (error) {
-      const fallback = await selectGuestById(id, baseGuestSelect);
-      data = fallback.data;
-      error = fallback.error;
+      const fallbackResult = await selectGuestById(id, baseGuestSelect);
+
+      if (fallbackResult.error) {
+        return readLocalGuestById(id);
+      }
+
+      const fallbackRow: GuestRow | null = fallbackResult.data;
+
+      return fallbackRow ? withLocalProfile(mapGuest(fallbackRow)) : readLocalGuestById(id);
     }
 
     if (error) {
