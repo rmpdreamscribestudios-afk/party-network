@@ -4,8 +4,17 @@
 
 :root {
   color-scheme: dark;
-  --background: #070707;
-  --foreground: #f8efd9;
+  --pn-deep-navy: #1a365d;
+  --pn-electric-blue: #3182ce;
+  --pn-vibrant-teal: #38b2ac;
+  --pn-success-green: #22c55e;
+  --pn-warning-gold: #f59e0b;
+  --pn-soft-background: #f8fafc;
+  --pn-ink: #10213a;
+  --pn-muted: #cbd5e1;
+  --pn-line: rgba(148, 163, 184, 0.28);
+  --background: var(--pn-deep-navy);
+  --foreground: var(--pn-soft-background);
 }
 
 * {
@@ -20,11 +29,14 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    radial-gradient(circle at top, rgba(215, 180, 106, 0.22), transparent 34rem),
-    radial-gradient(circle at 85% 20%, rgba(244, 223, 174, 0.1), transparent 28rem),
-    linear-gradient(180deg, #070707 0%, #111111 55%, #050505 100%);
+    radial-gradient(circle at 10% 0%, rgba(49, 130, 206, 0.32), transparent 32rem),
+    radial-gradient(circle at 92% 18%, rgba(56, 178, 172, 0.24), transparent 30rem),
+    radial-gradient(circle at 50% 100%, rgba(245, 158, 11, 0.14), transparent 28rem),
+    linear-gradient(180deg, #1a365d 0%, #10213a 54%, #0b1729 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
 }
 
 a {
@@ -42,6 +54,48 @@ button:disabled {
   opacity: 0.48;
 }
 
+@layer components {
+  .pn-surface {
+    @apply border border-white/15 bg-party-navy/72 shadow-dashboard backdrop-blur;
+  }
+
+  .pn-card {
+    @apply rounded-md border border-white/15 bg-white/[0.08] p-5 shadow-dashboard backdrop-blur;
+  }
+
+  .pn-mission-card {
+    @apply rounded-md border border-party-teal/40 bg-party-navy/78 p-6 shadow-celebration backdrop-blur;
+  }
+
+  .pn-dashboard-card {
+    @apply rounded-md border border-party-blue/30 bg-party-navy/72 p-5 shadow-dashboard backdrop-blur;
+  }
+
+  .pn-guest-card {
+    @apply rounded-md border border-party-teal/35 bg-party-navy/74 p-6 shadow-celebration backdrop-blur;
+  }
+
+  .pn-stat-card {
+    @apply rounded-md border border-party-blue/30 bg-white/[0.08] p-5 shadow-dashboard;
+  }
+
+  .pn-empty-state {
+    @apply rounded-md border border-dashed border-party-teal/45 bg-party-navy/44 p-8 text-center text-slate-200;
+  }
+
+  .pn-loading-state {
+    @apply rounded-md border border-party-blue/30 bg-party-navy/52 p-3 text-sm font-semibold text-party-soft;
+  }
+
+  .pn-success-state {
+    @apply rounded-md border border-party-green/45 bg-party-green/15 p-3 text-sm font-semibold text-green-100 shadow-celebration;
+  }
+
+  .pn-celebration-state {
+    @apply rounded-md border border-party-gold/45 bg-party-gold/15 p-5 text-party-soft shadow-celebration;
+  }
+}
+
 .premium-orbit {
   position: absolute;
   inset: -20%;
@@ -49,12 +103,12 @@ button:disabled {
     conic-gradient(
       from 0deg,
       transparent,
-      rgba(215, 180, 106, 0.22),
+      rgba(56, 178, 172, 0.28),
       transparent,
-      rgba(244, 223, 174, 0.12),
+      rgba(49, 130, 206, 0.22),
       transparent
     ),
-    radial-gradient(circle at center, transparent 0 28%, rgba(0, 0, 0, 0.82) 63%);
+    radial-gradient(circle at center, transparent 0 28%, rgba(26, 54, 93, 0.78) 63%);
   animation: slow-spin 18s linear infinite;
 }
 
@@ -74,17 +128,20 @@ button:disabled {
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle, #d7b46a 0 0.35rem, transparent 0.4rem),
-    radial-gradient(circle, #f8efd9 0 0.25rem, transparent 0.3rem),
-    radial-gradient(circle, #c59d42 0 0.3rem, transparent 0.35rem);
+    radial-gradient(circle, #f59e0b 0 0.35rem, transparent 0.4rem),
+    radial-gradient(circle, #38b2ac 0 0.25rem, transparent 0.3rem),
+    radial-gradient(circle, #22c55e 0 0.3rem, transparent 0.35rem),
+    radial-gradient(circle, #3182ce 0 0.28rem, transparent 0.34rem);
   background-position:
     8% -10%,
     47% -18%,
-    82% -14%;
+    82% -14%,
+    24% -22%;
   background-size:
     7rem 11rem,
     9rem 13rem,
-    8rem 12rem;
+    8rem 12rem,
+    10rem 14rem;
   animation: confetti-fall 1.9s linear infinite;
   opacity: 0.9;
 }
@@ -130,6 +187,7 @@ button:disabled {
     background-position:
       8% 115%,
       47% 125%,
-      82% 118%;
+      82% 118%,
+      24% 122%;
   }
 }

@@ -228,25 +228,25 @@ export default function HostPage() {
   return (
     <main className="min-h-screen px-4 py-6 sm:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <header className="flex flex-col justify-between gap-4 border-b border-gold/20 pb-6 md:flex-row md:items-end">
+        <header className="flex flex-col justify-between gap-4 border-b border-party-teal/25 pb-6 md:flex-row md:items-end">
           <div>
-            <p className="text-sm font-bold uppercase tracking-normal text-gold">
+            <p className="text-sm font-bold uppercase tracking-normal text-party-teal">
               Host Control
             </p>
-            <h1 className="mt-2 text-4xl font-black text-champagne sm:text-6xl">
+            <h1 className="mt-2 text-4xl font-black text-party-soft sm:text-6xl">
               {settings.title}
             </h1>
             {settings.subtitle ? (
-              <p className="mt-2 max-w-2xl text-lg text-stone-300">
+              <p className="mt-2 max-w-2xl text-lg text-slate-200">
                 {settings.subtitle}
               </p>
             ) : null}
             {settings.date ? (
-              <p className="mt-2 text-sm font-bold uppercase tracking-normal text-gold">
+              <p className="mt-2 text-sm font-bold uppercase tracking-normal text-party-gold">
                 {settings.date}
               </p>
             ) : null}
-            <p className="mt-3 inline-flex rounded-md border border-gold/40 px-3 py-1 text-sm font-bold uppercase tracking-normal text-gold">
+            <p className="mt-3 inline-flex rounded-md border border-party-teal/40 bg-party-teal/10 px-3 py-1 text-sm font-bold uppercase tracking-normal text-party-teal">
               {settings.eventType}
             </p>
           </div>
@@ -273,12 +273,12 @@ export default function HostPage() {
         <section className="grid gap-4 md:grid-cols-4">
           <form
             onSubmit={handleSaveEventSettings}
-            className="rounded-md border border-gold/30 bg-black/45 p-5 md:col-span-4"
+            className="pn-dashboard-card md:col-span-4"
           >
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
               <div>
-                <p className="text-sm uppercase text-stone-400">Event Settings</p>
-                <h2 className="mt-1 text-2xl font-bold text-champagne">
+                <p className="text-sm font-bold uppercase text-party-teal">Event Settings</p>
+                <h2 className="mt-1 text-2xl font-bold text-party-soft">
                   Shared Event Details
                 </h2>
               </div>
@@ -311,7 +311,7 @@ export default function HostPage() {
                 onChange={(event) => setEventDate(event.target.value)}
               />
               <label className="block">
-                <span className="text-sm font-medium text-stone-200">
+                <span className="text-sm font-semibold text-party-soft">
                   Event Type
                 </span>
                 <select
@@ -319,7 +319,7 @@ export default function HostPage() {
                   onChange={(event) =>
                     handleEventTypeChange(event.target.value as EventType)
                   }
-                  className="mt-2 min-h-12 w-full rounded-md border border-stone-700 bg-charcoal px-4 text-base text-champagne outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30"
+                  className="mt-2 min-h-12 w-full rounded-md border border-party-blue/35 bg-party-navy/70 px-4 text-base text-party-soft outline-none transition focus:border-party-teal focus:ring-2 focus:ring-party-teal/30"
                 >
                   {eventTypes.map((nextEventType) => (
                     <option key={nextEventType} value={nextEventType}>
@@ -333,40 +333,40 @@ export default function HostPage() {
 
           <HostMissionEngine guests={guests} eventType={eventType} />
 
-          <div className="rounded-md border border-gold/30 bg-black/45 p-5">
-            <p className="text-sm uppercase text-stone-400">
+          <div className="pn-stat-card">
+            <p className="text-sm font-bold uppercase text-slate-300">
               Connections Created
             </p>
-            <p className="mt-2 text-5xl font-black text-gold">
+            <p className="mt-2 text-5xl font-black text-party-teal">
               {connectionStats.connectionsCreated}
             </p>
           </div>
-          <div className="rounded-md border border-gold/30 bg-black/45 p-5">
-            <p className="text-sm uppercase text-stone-400">
+          <div className="pn-stat-card">
+            <p className="text-sm font-bold uppercase text-slate-300">
               Participation Rate
             </p>
-            <p className="mt-2 text-5xl font-black text-gold">
+            <p className="mt-2 text-5xl font-black text-party-green">
               {connectionStats.participationRate}%
             </p>
           </div>
-          <div className="rounded-md border border-gold/30 bg-black/45 p-5">
-            <p className="text-sm uppercase text-stone-400">
+          <div className="pn-stat-card">
+            <p className="text-sm font-bold uppercase text-slate-300">
               Active Participants
             </p>
-            <p className="mt-2 text-5xl font-black text-gold">
+            <p className="mt-2 text-5xl font-black text-party-blue">
               {connectionStats.activeParticipants}
             </p>
           </div>
-          <div className="rounded-md border border-gold/30 bg-black/45 p-5 md:col-span-2">
-            <p className="text-sm uppercase text-stone-400">
+          <div className="pn-stat-card md:col-span-2">
+            <p className="text-sm font-bold uppercase text-slate-300">
               Most Completed Mission
             </p>
-            <p className="mt-2 text-2xl font-black leading-tight text-gold">
+            <p className="mt-2 text-2xl font-black leading-tight text-party-gold">
               {connectionStats.mostCompletedMission}
             </p>
           </div>
-          <div className="rounded-md border border-gold/30 bg-black/45 p-5 md:col-span-1">
-            <p className="text-sm uppercase text-stone-400">
+          <div className="pn-stat-card md:col-span-1">
+            <p className="text-sm font-bold uppercase text-slate-300">
               Top Mission Categories
             </p>
             <div className="mt-3 space-y-2">
@@ -374,39 +374,39 @@ export default function HostPage() {
                 connectionStats.topMissionCategories.map((item) => (
                   <div
                     key={item.category}
-                    className="flex items-center justify-between gap-3 rounded-md border border-stone-800 bg-stone-950/70 px-3 py-2"
+                    className="flex items-center justify-between gap-3 rounded-md border border-party-blue/25 bg-party-navy/70 px-3 py-2"
                   >
-                    <span className="text-sm font-bold text-champagne">
+                    <span className="text-sm font-bold text-party-soft">
                       {item.category}
                     </span>
-                    <span className="text-lg font-black text-gold">
+                    <span className="text-lg font-black text-party-teal">
                       {item.count}
                     </span>
                   </div>
                 ))
               ) : (
-                <p className="text-sm font-semibold text-stone-300">Pending</p>
+                <p className="text-sm font-semibold text-slate-300">Pending</p>
               )}
             </div>
           </div>
 
-          <div className="rounded-md border border-gold/30 bg-black/45 p-5">
-            <p className="text-sm uppercase text-stone-400">Guests</p>
-            <p className="mt-2 text-5xl font-black text-gold">{guests.length}</p>
+          <div className="pn-stat-card">
+            <p className="text-sm font-bold uppercase text-slate-300">Guests</p>
+            <p className="mt-2 text-5xl font-black text-party-teal">{guests.length}</p>
           </div>
-          <div className="rounded-md border border-gold/30 bg-black/45 p-5">
-            <p className="text-sm uppercase text-stone-400">Average Luck</p>
-            <p className="mt-2 text-5xl font-black text-gold">{averageLuck}</p>
+          <div className="pn-stat-card">
+            <p className="text-sm font-bold uppercase text-slate-300">Average Luck</p>
+            <p className="mt-2 text-5xl font-black text-party-gold">{averageLuck}</p>
           </div>
-          <div className="rounded-md border border-gold/30 bg-black/45 p-5">
-            <p className="text-sm uppercase text-stone-400">Winner</p>
-            <p className="mt-2 text-3xl font-black text-gold">
+          <div className="pn-stat-card">
+            <p className="text-sm font-bold uppercase text-slate-300">Winner</p>
+            <p className="mt-2 text-3xl font-black text-party-green">
               {currentWinner?.name ?? "Pending"}
             </p>
           </div>
-          <div className="rounded-md border border-gold/30 bg-black/45 p-5">
-            <p className="text-sm uppercase text-stone-400">Prize Status</p>
-            <p className="mt-2 text-3xl font-black text-gold">
+          <div className="pn-stat-card">
+            <p className="text-sm font-bold uppercase text-slate-300">Prize Status</p>
+            <p className="mt-2 text-3xl font-black text-party-gold">
               {raffleState.grandPrizeRevealed
                 ? "8KG Rice"
                 : raffleState.prizeRevealed
@@ -416,9 +416,9 @@ export default function HostPage() {
           </div>
           <form
             onSubmit={handleAddGuest}
-            className="rounded-md border border-gold/30 bg-black/45 p-5 md:col-span-1 md:row-span-2"
+            className="pn-dashboard-card md:col-span-1 md:row-span-2"
           >
-            <h2 className="text-2xl font-bold text-champagne">Add Guest</h2>
+            <h2 className="text-2xl font-bold text-party-soft">Add Guest</h2>
             <div className="mt-5 space-y-4">
               <FormField
                 required
@@ -454,14 +454,14 @@ export default function HostPage() {
             </div>
           </form>
 
-          <div className="rounded-md border border-gold/30 bg-black/45 p-5 md:col-span-3">
+          <div className="pn-dashboard-card md:col-span-3">
             <div className="flex items-center justify-between gap-4">
-              <h2 className="text-2xl font-bold text-champagne">
+              <h2 className="text-2xl font-bold text-party-soft">
                 Registered Guests
               </h2>
               <button
                 type="button"
-                className="rounded-md border border-gold/40 px-4 py-2 text-sm font-bold text-champagne transition hover:border-gold"
+                className="rounded-md border border-party-blue/50 bg-white/[0.04] px-4 py-2 text-sm font-bold text-party-soft transition hover:border-party-teal"
                 onClick={loadGuests}
                 disabled={isLoadingGuests}
               >
@@ -469,7 +469,7 @@ export default function HostPage() {
               </button>
             </div>
             {statusMessage ? (
-              <p className="mt-4 rounded-md border border-gold/30 bg-black/50 p-3 text-sm font-semibold text-champagne">
+              <p className="pn-loading-state mt-4">
                 {statusMessage}
               </p>
             ) : null}
@@ -478,38 +478,38 @@ export default function HostPage() {
                 guests.map((guest) => (
                   <article
                     key={guest.id}
-                    className="grid gap-3 rounded-md border border-stone-800 bg-stone-950/70 p-4 sm:grid-cols-[1fr_auto_auto] sm:items-center"
+                    className="grid gap-3 rounded-md border border-party-blue/25 bg-party-navy/70 p-4 sm:grid-cols-[1fr_auto_auto] sm:items-center"
                   >
                     <div>
-                      <h3 className="text-xl font-bold text-champagne">
+                      <h3 className="text-xl font-bold text-party-soft">
                         {guest.name}
                       </h3>
                       {guest.answer ? (
-                        <p className="mt-1 text-sm text-stone-400">
+                        <p className="mt-1 text-sm text-slate-300">
                           {guest.answer}
                         </p>
                       ) : null}
                       {guest.interests || guest.favoriteHobby || guest.funFact ? (
-                        <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold text-stone-300">
+                        <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold text-slate-200">
                           {guest.favoriteHobby ? (
-                            <span className="rounded-md border border-stone-700 px-2 py-1">
+                            <span className="rounded-md border border-party-blue/30 bg-party-blue/10 px-2 py-1">
                               Hobby: {guest.favoriteHobby}
                             </span>
                           ) : null}
                           {guest.interests ? (
-                            <span className="rounded-md border border-stone-700 px-2 py-1">
+                            <span className="rounded-md border border-party-blue/30 bg-party-blue/10 px-2 py-1">
                               Interests: {guest.interests}
                             </span>
                           ) : null}
                           {guest.funFact ? (
-                            <span className="rounded-md border border-stone-700 px-2 py-1">
+                            <span className="rounded-md border border-party-blue/30 bg-party-blue/10 px-2 py-1">
                               Fun fact: {guest.funFact}
                             </span>
                           ) : null}
                         </div>
                       ) : null}
                     </div>
-                    <p className="text-3xl font-black text-gold">
+                    <p className="text-3xl font-black text-party-gold">
                       {guest.luckScore}
                     </p>
                     <button
@@ -522,7 +522,7 @@ export default function HostPage() {
                   </article>
                 ))
               ) : (
-                <p className="rounded-md border border-dashed border-gold/30 p-8 text-center text-stone-300">
+                <p className="pn-empty-state">
                   No guests yet. The shared experience is ready for names.
                 </p>
               )}
