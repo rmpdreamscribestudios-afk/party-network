@@ -14,6 +14,9 @@ import type { PartyGuest } from "@/lib/party-storage";
 type GuestRow = {
   id: string;
   name: string;
+  table_number?: string | null;
+  age_group?: string | null;
+  first_time_attendee?: boolean | null;
   first_name?: string | null;
   interests?: string | null;
   favorite_hobby?: string | null;
@@ -25,6 +28,9 @@ type GuestRow = {
 
 type GuestInsert = {
   name: string;
+  table_number?: string | null;
+  age_group?: string | null;
+  first_time_attendee?: boolean | null;
   first_name?: string | null;
   interests?: string | null;
   favorite_hobby?: string | null;
@@ -45,7 +51,7 @@ type GuestSingleResult = {
 
 const baseGuestSelect = "id, name, funny_answer, luck_score, created_at";
 const profileGuestSelect =
-  "id, name, first_name, interests, favorite_hobby, fun_fact, funny_answer, luck_score, created_at";
+  "id, name, table_number, age_group, first_time_attendee, first_name, interests, favorite_hobby, fun_fact, funny_answer, luck_score, created_at";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -60,6 +66,9 @@ function mapGuest(row: GuestRow): PartyGuest {
   return {
     id: row.id,
     name: row.name,
+    tableNumber: row.table_number ?? undefined,
+    ageGroup: row.age_group ?? undefined,
+    firstTimeAttendee: row.first_time_attendee ?? undefined,
     firstName: row.first_name ?? undefined,
     interests: row.interests ?? undefined,
     favoriteHobby: row.favorite_hobby ?? undefined,
@@ -103,6 +112,9 @@ function withLocalProfile(guest: PartyGuest): PartyGuest {
 
   return {
     ...guest,
+    tableNumber: guest.tableNumber ?? localGuest?.tableNumber,
+    ageGroup: guest.ageGroup ?? localGuest?.ageGroup,
+    firstTimeAttendee: guest.firstTimeAttendee ?? localGuest?.firstTimeAttendee,
     firstName: guest.firstName ?? localGuest?.firstName,
     interests: guest.interests ?? localGuest?.interests,
     favoriteHobby: guest.favoriteHobby ?? localGuest?.favoriteHobby,
@@ -220,6 +232,9 @@ export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
 
   const payload: GuestInsert = {
     name: guest.name,
+    table_number: guest.tableNumber ?? null,
+    age_group: guest.ageGroup ?? null,
+    first_time_attendee: guest.firstTimeAttendee ?? null,
     first_name: guest.firstName ?? null,
     interests: guest.interests ?? null,
     favorite_hobby: guest.favoriteHobby ?? null,
@@ -256,6 +271,9 @@ export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
 
     const insertedGuest = {
       ...mapGuest(fallbackRow),
+      tableNumber: guest.tableNumber,
+      ageGroup: guest.ageGroup,
+      firstTimeAttendee: guest.firstTimeAttendee,
       firstName: guest.firstName,
       interests: guest.interests,
       favoriteHobby: guest.favoriteHobby,
@@ -274,6 +292,9 @@ export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
 
   const insertedGuest = {
     ...mapGuest(primaryRow),
+    tableNumber: guest.tableNumber,
+    ageGroup: guest.ageGroup,
+    firstTimeAttendee: guest.firstTimeAttendee,
     firstName: guest.firstName,
     interests: guest.interests,
     favoriteHobby: guest.favoriteHobby,
