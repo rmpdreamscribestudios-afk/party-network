@@ -8,7 +8,7 @@ import {
   getPrizeById,
   PARTY_EVENT_UPDATE,
   readRaffleState,
-  resetPartyData,
+  initialRaffleState,
   writeRaffleState
 } from "@/lib/party-storage";
 import type { PartyGuest, RaffleState } from "@/lib/party-storage";
@@ -33,7 +33,11 @@ import {
   insertGuest,
   subscribeToGuestChanges
 } from "@/lib/supabase-guests";
-import { saveEventSettings } from "@/lib/supabase-event-settings";
+import {
+  defaultEventSettings,
+  saveEventSettings
+} from "@/lib/supabase-event-settings";
+import { clearMissionState } from "@/lib/supabase-missions";
 import { useEventSettings } from "@/lib/use-event-settings";
 import {
   eventTypes,
@@ -67,6 +71,7 @@ export default function HostPage() {
   const [statusMessage, setStatusMessage] = useState("");
   const [isLoadingGuests, setIsLoadingGuests] = useState(false);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [isResettingEvent, setIsResettingEvent] = useState(false);
 
   const loadGuests = useCallback(async () => {
     setIsLoadingGuests(true);
@@ -190,31 +195,80 @@ export default function HostPage() {
   }
 
   async function handleClearGuests() {
+    if (!window.confirm("Are you sure? This cannot be undone.")) {
+      return;
+    }
+
     setStatusMessage("");
+    setIsResettingEvent(true);
 
     try {
       await clearGuests();
-      await clearAllConnectionRecords();
-      writeRaffleState({
-        prizeRevealed: false,
-        grandPrizeRevealed: false
-      });
       await loadGuests();
+      setStatusMessage("All guests cleared.");
     } catch {
       setStatusMessage("Could not clear guests.");
+    } finally {
+      setIsResettingEvent(false);
     }
   }
 
-  async function handleResetEvent() {
-    resetPartyData();
-    await clearAllConnectionRecords();
-    try {
-      await clearGuests();
-    } catch {
-      setStatusMessage("Local event state was reset, but guests could not be cleared.");
+  async function handleResetEventText() {
+    if (!window.confirm("Are you sure? This cannot be undone.")) {
+      return;
     }
-    await loadGuests();
-    setRaffleState({ prizeRevealed: false, grandPrizeRevealed: false });
+
+    setStatusMessage("");
+    setIsResettingEvent(true);
+
+    try {
+      await saveEventSettings({
+        title: defaultEventSettings.title,
+        subtitle: defaultEventSettings.subtitle,
+        date: eventDate || undefined,
+        eventType
+      });
+      setEventTitle(defaultEventSettings.title);
+      setEventSubtitle(defaultEventSettings.subtitle);
+      await reloadSettings();
+      setStatusMessage("Event title and subtitle reset.");
+    } catch {
+      setStatusMessage("Could not reset event title and subtitle.");
+    } finally {
+      setIsResettingEvent(false);
+    }
+  }
+
+  async function handleFullResetEvent() {
+    if (!window.confirm("Are you sure? This cannot be undone.")) {
+      return;
+    }
+
+    setStatusMessage("");
+    setIsResettingEvent(true);
+
+    try {
+      await clearMissionState();
+      await clearAllConnectionRecords();
+      await clearGuests();
+      await saveEventSettings({
+        title: defaultEventSettings.title,
+        subtitle: defaultEventSettings.subtitle,
+        date: eventDate || undefined,
+        eventType
+      });
+      writeRaffleState(initialRaffleState);
+      setEventTitle(defaultEventSettings.title);
+      setEventSubtitle(defaultEventSettings.subtitle);
+      await reloadSettings();
+      await loadGuests();
+      setRaffleState(initialRaffleState);
+      setStatusMessage("Event data reset.");
+    } catch {
+      setStatusMessage("Could not reset event data.");
+    } finally {
+      setIsResettingEvent(false);
+    }
   }
 
   function handleLogout() {
@@ -305,7 +359,7 @@ export default function HostPage() {
                 label="Event Subtitle"
                 value={eventSubtitle}
                 onChange={(event) => setEventSubtitle(event.target.value)}
-                placeholder="Helping people connect, participate, and create meaningful memories together."
+                placeholder="Less Scrolling. More Connecting."
               />
               <FormField
                 label="Event Date"
@@ -439,21 +493,6 @@ export default function HostPage() {
               <button type="submit" className={primaryActionClassName}>
                 Add Guest
               </button>
-              <button
-                type="button"
-                className={secondaryActionClassName}
-                onClick={handleClearGuests}
-                disabled={!guests.length}
-              >
-                Clear Guest List
-              </button>
-              <button
-                type="button"
-                className="inline-flex min-h-12 w-full items-center justify-center rounded-md border border-red-400/50 px-6 py-3 text-center text-base font-bold text-red-100 transition hover:bg-red-500/15 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2 focus:ring-offset-party-navy"
-                onClick={handleResetEvent}
-              >
-                Reset Event
-              </button>
             </div>
           </form>
 
@@ -531,6 +570,41 @@ export default function HostPage() {
               )}
             </div>
           </div>
+
+          <section className="pn-dashboard-card border-red-400/40 md:col-span-4">
+            <div>
+              <p className="text-sm font-bold uppercase text-red-200">Danger Zone</p>
+              <h2 className="mt-1 text-2xl font-bold text-party-soft">
+                Reset Event Data
+              </h2>
+            </div>
+            <div className="mt-5 grid gap-3 md:grid-cols-3">
+              <button
+                type="button"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-md border border-red-400/50 px-6 py-3 text-center text-base font-bold text-red-100 transition hover:bg-red-500/15 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2 focus:ring-offset-party-navy disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={handleClearGuests}
+                disabled={isResettingEvent}
+              >
+                Clear All Guests
+              </button>
+              <button
+                type="button"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-md border border-red-400/50 px-6 py-3 text-center text-base font-bold text-red-100 transition hover:bg-red-500/15 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2 focus:ring-offset-party-navy disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={handleResetEventText}
+                disabled={isResettingEvent}
+              >
+                Reset Event Title & Subtitle
+              </button>
+              <button
+                type="button"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-md border border-red-400/50 bg-red-500/10 px-6 py-3 text-center text-base font-bold text-red-100 transition hover:bg-red-500/20 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2 focus:ring-offset-party-navy disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={handleFullResetEvent}
+                disabled={isResettingEvent}
+              >
+                Full Reset Event
+              </button>
+            </div>
+          </section>
         </section>
       </div>
     </main>

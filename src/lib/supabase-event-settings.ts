@@ -54,8 +54,7 @@ export const PARTY_EVENT_SETTINGS_KEY = "party-network-event-settings";
 
 export const defaultEventSettings: EventSettings = {
   title: "Party Network",
-  subtitle:
-    "Helping people connect, participate, and create meaningful memories together.",
+  subtitle: "Less Scrolling. More Connecting.",
   eventType: defaultEventType
 };
 

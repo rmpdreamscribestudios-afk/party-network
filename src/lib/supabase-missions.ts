@@ -216,6 +216,27 @@ function requireSupabase() {
   return supabase;
 }
 
+function isMissingOptionalTableError(error: { code?: string; message?: string }) {
+  return (
+    error.code === "42P01" ||
+    error.code === "PGRST205" ||
+    error.message?.toLowerCase().includes("does not exist") ||
+    error.message?.toLowerCase().includes("could not find the table")
+  );
+}
+
+async function clearOptionalTable(tableName: string) {
+  if (!supabase) {
+    return;
+  }
+
+  const { error } = await supabase.from(tableName).delete().not("id", "is", null);
+
+  if (error && !isMissingOptionalTableError(error)) {
+    throw error;
+  }
+}
+
 function isMissionCategory(value?: string | null): value is MissionCategory {
   return missionCategories.includes(value as MissionCategory);
 }
@@ -371,6 +392,11 @@ export async function deleteMission(missionId: string) {
   if (error) {
     throw error;
   }
+}
+
+export async function clearMissionState() {
+  await clearOptionalTable("guest_missions");
+  await clearOptionalTable("mission_rounds");
 }
 
 export async function launchMissionRound(
@@ -627,7 +653,7 @@ export async function fetchMissionAssignmentStats(): Promise<MissionAssignmentSt
   }
 
   const assignments = ((data ?? []) as GuestMissionWithDetailsRow[])
-    .map((row) => {
+    .map((row): MissionAssignment | undefined => {
       const mission = getMissionFromJoinedRow(row);
 
       if (!mission || !isConnectionMissionCategory(mission.category)) {
