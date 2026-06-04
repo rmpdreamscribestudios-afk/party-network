@@ -1,3 +1,5 @@
+import { LogoHeader } from "@/components/logo";
+
 type ExperienceShellProps = Readonly<{
   eyebrow?: string;
   title: string;
@@ -23,6 +25,10 @@ export function ExperienceShell({
           isCentered ? "text-center" : "text-left"
         }`}
       >
+        <LogoHeader
+          size="md"
+          className={`mb-6 ${isCentered ? "mx-auto" : ""}`}
+        />
         {eyebrow ? (
           <p className="mb-4 text-sm font-bold uppercase tracking-normal text-party-teal">
             {eyebrow}
