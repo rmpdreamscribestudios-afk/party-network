@@ -25,6 +25,7 @@ import {
 } from "@/components/button-styles";
 import { FormField } from "@/components/form-field";
 import { HostMissionEngine } from "@/components/host-mission-engine";
+import { LogoHeader } from "@/components/logo";
 import { clearHostAccess } from "@/lib/host-auth";
 import {
   clearGuests,
@@ -300,6 +301,7 @@ export default function HostPage() {
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
         <header className="flex flex-col justify-between gap-4 border-b border-party-teal/25 pb-6 md:flex-row md:items-end">
           <div>
+            <LogoHeader size="md" className="mb-5" />
             <p className="text-sm font-bold uppercase tracking-normal text-party-teal">
               Host Control
             </p>
