@@ -3,6 +3,9 @@
 export type PartyGuest = {
   id: string;
   name: string;
+  tableNumber?: string;
+  ageGroup?: string;
+  firstTimeAttendee?: boolean;
   firstName?: string;
   interests?: string;
   favoriteHobby?: string;
@@ -51,6 +54,9 @@ export const initialRaffleState: RaffleState = {
 };
 
 export type GuestProfileInput = {
+  tableNumber?: string;
+  ageGroup?: string;
+  firstTimeAttendee?: boolean;
   firstName?: string;
   interests?: string;
   favoriteHobby?: string;
@@ -71,6 +77,9 @@ export function createGuest(
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     name: name.trim(),
+    tableNumber: nextProfile.tableNumber?.trim() || undefined,
+    ageGroup: nextProfile.ageGroup?.trim() || undefined,
+    firstTimeAttendee: nextProfile.firstTimeAttendee,
     firstName: nextProfile.firstName?.trim() || undefined,
     interests: nextProfile.interests?.trim() || undefined,
     favoriteHobby: nextProfile.favoriteHobby?.trim() || undefined,
