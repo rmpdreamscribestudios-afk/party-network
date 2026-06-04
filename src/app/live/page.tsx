@@ -25,6 +25,7 @@ import {
 } from "@/lib/supabase-missions";
 import type { MissionRoundStats } from "@/lib/supabase-missions";
 import { useEventSettings } from "@/lib/use-event-settings";
+import { LogoHeader } from "@/components/logo";
 
 const emptyMissionStats: MissionRoundStats = {
   totalGuests: 0,
@@ -140,6 +141,7 @@ export default function LivePage() {
       <section className="relative z-10 flex w-full flex-col justify-between">
         <header className="flex items-start justify-between gap-6">
           <div>
+            <LogoHeader size="md" className="mb-5" />
             <p className="text-xl font-bold uppercase text-party-teal">
               Live Experience Feed
             </p>

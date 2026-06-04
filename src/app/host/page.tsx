@@ -371,7 +371,7 @@ export default function HostPage() {
                 label="Event Title"
                 value={eventTitle}
                 onChange={(event) => setEventTitle(event.target.value)}
-                placeholder="Party Network"
+                placeholder="Event name"
               />
               <FormField
                 label="Event Subtitle"

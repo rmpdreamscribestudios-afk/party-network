@@ -6,6 +6,7 @@ import {
   primaryActionClassName,
   secondaryActionClassName
 } from "@/components/button-styles";
+import { LogoHeader } from "@/components/logo";
 import {
   PARTY_EVENT_UPDATE,
   readRaffleState,
@@ -42,6 +43,7 @@ export default function GrandPrizePage() {
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-5 py-8 text-center">
       {revealed ? <div className="confetti-field" /> : null}
       <section className="relative z-10 w-full max-w-5xl">
+        <LogoHeader size="md" className="mx-auto mb-6" />
         <p className="text-lg font-bold uppercase text-party-teal">Final Reveal</p>
         <h1 className="mt-4 text-5xl font-black text-party-soft md:text-8xl">
           PANGKABUHAYAN SHOWCASE GRAND PRIZE

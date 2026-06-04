@@ -6,6 +6,7 @@ import {
   primaryActionClassName,
   secondaryActionClassName
 } from "@/components/button-styles";
+import { LogoHeader } from "@/components/logo";
 import {
   getPrizeById,
   PARTY_EVENT_UPDATE,
@@ -84,6 +85,7 @@ export default function RafflePage() {
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-5 py-8 text-center">
       <div className="premium-orbit" />
       <section className="relative z-10 w-full max-w-5xl">
+        <LogoHeader size="md" className="mx-auto mb-6" />
         <p className="text-lg font-bold uppercase text-party-teal">Live Draw</p>
         <p className="mt-2 text-2xl font-bold text-party-soft">{settings.title}</p>
         <h1 className="mt-3 text-5xl font-black text-party-soft sm:text-7xl md:text-8xl">

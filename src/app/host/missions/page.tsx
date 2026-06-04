@@ -6,6 +6,7 @@ import {
   primaryActionClassName,
   secondaryActionClassName
 } from "@/components/button-styles";
+import { LogoHeader } from "@/components/logo";
 import {
   ensureConnectionMissions,
   fetchMissionAssignmentStats,
@@ -78,6 +79,7 @@ export default function HostMissionsPage() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <header className="flex flex-col justify-between gap-4 border-b border-party-teal/25 pb-6 md:flex-row md:items-end">
           <div>
+            <LogoHeader size="md" className="mb-5" />
             <p className="text-sm font-black uppercase text-party-teal">
               Connection Missions Engine v1
             </p>

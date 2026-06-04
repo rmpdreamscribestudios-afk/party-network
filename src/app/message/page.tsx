@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { secondaryActionClassName } from "@/components/button-styles";
+import { LogoHeader } from "@/components/logo";
 
 export default function HostMessagePage() {
   return (
     <main className="flex min-h-screen items-center justify-center px-5 py-8">
       <section className="w-full max-w-5xl text-center">
+        <LogoHeader size="md" className="mx-auto mb-6" />
         <p className="text-lg font-bold uppercase text-party-teal">From the Host</p>
         <h1 className="mt-4 text-4xl font-black text-party-soft md:text-7xl">
           Tonight Was Never Just About Prizes
