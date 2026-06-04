@@ -187,23 +187,23 @@ export default function MissionPage() {
       title={settings.title}
       subtitle={settings.subtitle}
     >
-      <div className="rounded-md border border-gold/40 bg-black/50 p-6 text-left shadow-gold backdrop-blur">
-        <p className="text-sm font-bold uppercase tracking-normal text-gold">
+      <div className="pn-mission-card text-left">
+        <p className="text-sm font-bold uppercase tracking-normal text-party-teal">
           {guestName}
         </p>
-        <h2 className="mt-3 text-2xl font-black leading-tight text-champagne">
+        <h2 className="mt-3 text-2xl font-black leading-tight text-party-soft">
           {guestMission?.mission.prompt ?? "Mission pending"}
         </h2>
         {guestMission ? (
-          <p className="mt-3 inline-flex rounded-md border border-gold/30 px-3 py-1 text-sm font-bold text-gold">
+          <p className="mt-3 inline-flex rounded-md border border-party-gold/40 bg-party-gold/10 px-3 py-1 text-sm font-bold text-party-gold">
             {guestMission.mission.category}
           </p>
         ) : null}
-        <p className="mt-4 text-base leading-7 text-stone-200">{message}</p>
+        <p className="mt-4 text-base leading-7 text-slate-200">{message}</p>
         {guestMission ? (
           <div className="mt-6 space-y-4">
             <label className="block">
-              <span className="text-sm font-medium text-stone-200">
+              <span className="text-sm font-semibold text-party-soft">
                 Optional notes
               </span>
               <textarea
@@ -212,13 +212,13 @@ export default function MissionPage() {
                 rows={3}
                 placeholder="Who did you meet? What happened?"
                 disabled={isComplete}
-                className="mt-2 w-full rounded-md border border-stone-700 bg-charcoal px-4 py-3 text-base text-champagne outline-none transition placeholder:text-stone-500 focus:border-gold focus:ring-2 focus:ring-gold/30 disabled:opacity-70"
+                className="mt-2 w-full rounded-md border border-party-blue/35 bg-party-navy/70 px-4 py-3 text-base text-party-soft outline-none transition placeholder:text-slate-400 focus:border-party-teal focus:ring-2 focus:ring-party-teal/30 disabled:opacity-70"
               />
             </label>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
-                <span className="text-sm font-medium text-stone-200">
+                <span className="text-sm font-semibold text-party-soft">
                   Photo proof link
                 </span>
                 <input
@@ -226,11 +226,11 @@ export default function MissionPage() {
                   onChange={(event) => setPhotoProofUrl(event.target.value)}
                   placeholder="Optional URL"
                   disabled={isComplete}
-                  className="mt-2 min-h-12 w-full rounded-md border border-stone-700 bg-charcoal px-4 text-base text-champagne outline-none transition placeholder:text-stone-500 focus:border-gold focus:ring-2 focus:ring-gold/30 disabled:opacity-70"
+                  className="mt-2 min-h-12 w-full rounded-md border border-party-blue/35 bg-party-navy/70 px-4 text-base text-party-soft outline-none transition placeholder:text-slate-400 focus:border-party-teal focus:ring-2 focus:ring-party-teal/30 disabled:opacity-70"
                 />
               </label>
               <label className="block">
-                <span className="text-sm font-medium text-stone-200">
+                <span className="text-sm font-semibold text-party-soft">
                   Or choose photo
                 </span>
                 <input
@@ -238,20 +238,20 @@ export default function MissionPage() {
                   accept="image/*"
                   onChange={handlePhotoProof}
                   disabled={isComplete}
-                  className="mt-2 min-h-12 w-full rounded-md border border-stone-700 bg-charcoal px-3 py-3 text-sm text-champagne file:mr-3 file:rounded-md file:border-0 file:bg-gold file:px-3 file:py-2 file:font-bold file:text-obsidian disabled:opacity-70"
+                  className="mt-2 min-h-12 w-full rounded-md border border-party-blue/35 bg-party-navy/70 px-3 py-3 text-sm text-party-soft file:mr-3 file:rounded-md file:border-0 file:bg-party-teal file:px-3 file:py-2 file:font-bold file:text-party-navy disabled:opacity-70"
                 />
               </label>
             </div>
 
             {photoProofUrl ? (
-              <p className="rounded-md border border-gold/20 bg-stone-950/70 p-3 text-sm font-semibold text-stone-200">
+              <p className="pn-success-state">
                 Photo proof ready.
               </p>
             ) : null}
 
             <button
               type="button"
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-md border border-gold bg-gold px-6 py-3 text-center text-base font-bold text-obsidian shadow-gold transition hover:bg-champagne focus:outline-none focus:ring-2 focus:ring-champagne focus:ring-offset-2 focus:ring-offset-obsidian disabled:cursor-not-allowed disabled:opacity-60"
+              className={`${primaryActionClassName} disabled:cursor-not-allowed disabled:opacity-60`}
               onClick={handleCompleteMission}
               disabled={isCompleting || isComplete}
             >
@@ -265,42 +265,42 @@ export default function MissionPage() {
         ) : null}
       </div>
       {guest ? (
-        <div className="mt-6 rounded-md border border-gold/40 bg-black/50 p-6 text-left shadow-gold backdrop-blur">
-          <p className="text-sm font-bold uppercase tracking-normal text-gold">
+        <div className="pn-guest-card mt-6 text-left">
+          <p className="text-sm font-bold uppercase tracking-normal text-party-teal">
             Connection Engine
           </p>
-          <h2 className="mt-2 text-2xl font-black leading-tight text-champagne">
+          <h2 className="mt-2 text-2xl font-black leading-tight text-party-soft">
             Find a real conversation
           </h2>
           {matchSuggestion ? (
-            <p className="mt-3 rounded-md border border-gold/25 bg-stone-950/70 p-3 text-base font-semibold text-stone-100">
+            <p className="mt-3 rounded-md border border-party-teal/35 bg-party-teal/10 p-3 text-base font-semibold text-slate-100">
               {matchSuggestion.message}
             </p>
           ) : (
-            <p className="mt-3 text-base leading-7 text-stone-200">
+            <p className="mt-3 text-base leading-7 text-slate-200">
               You may be the first profile with connection details. Pick a mission
               and invite someone nearby.
             </p>
           )}
 
           <div className="mt-5 space-y-4">
-            <div className="rounded-md border border-gold/25 bg-stone-950/70 p-4">
-              <p className="text-xs font-bold uppercase text-gold">
+            <div className="rounded-md border border-party-blue/25 bg-party-navy/70 p-4">
+              <p className="text-xs font-bold uppercase text-party-gold">
                 {selectedConnectionMission.category}
               </p>
-              <p className="mt-2 text-xl font-black leading-tight text-champagne">
+              <p className="mt-2 text-xl font-black leading-tight text-party-soft">
                 {selectedConnectionMission.prompt}
               </p>
             </div>
 
             <label className="block">
-              <span className="text-sm font-medium text-stone-200">
+              <span className="text-sm font-semibold text-party-soft">
                 Guided mission
               </span>
               <select
                 value={selectedMissionId}
                 onChange={(event) => setSelectedMissionId(event.target.value)}
-                className="mt-2 min-h-12 w-full rounded-md border border-stone-700 bg-charcoal px-4 text-base text-champagne outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30"
+                className="mt-2 min-h-12 w-full rounded-md border border-party-blue/35 bg-party-navy/70 px-4 text-base text-party-soft outline-none transition focus:border-party-teal focus:ring-2 focus:ring-party-teal/30"
               >
                 {getMissionGroups(availableConnectionMissions).map((group) => (
                   <optgroup key={group.category} label={group.category}>
@@ -316,24 +316,24 @@ export default function MissionPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
-                <span className="text-sm font-medium text-stone-200">
+                <span className="text-sm font-semibold text-party-soft">
                   Person&apos;s first name
                 </span>
                 <input
                   value={personFirstName}
                   onChange={(event) => setPersonFirstName(event.target.value)}
                   placeholder="Optional"
-                  className="mt-2 min-h-12 w-full rounded-md border border-stone-700 bg-charcoal px-4 text-base text-champagne outline-none transition placeholder:text-stone-500 focus:border-gold focus:ring-2 focus:ring-gold/30"
+                  className="mt-2 min-h-12 w-full rounded-md border border-party-blue/35 bg-party-navy/70 px-4 text-base text-party-soft outline-none transition placeholder:text-slate-400 focus:border-party-teal focus:ring-2 focus:ring-party-teal/30"
                 />
               </label>
               <label className="block">
-                <span className="text-sm font-medium text-stone-200">
+                <span className="text-sm font-semibold text-party-soft">
                   Registered guest
                 </span>
                 <select
                   value={metGuestId}
                   onChange={(event) => setMetGuestId(event.target.value)}
-                  className="mt-2 min-h-12 w-full rounded-md border border-stone-700 bg-charcoal px-4 text-base text-champagne outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30"
+                  className="mt-2 min-h-12 w-full rounded-md border border-party-blue/35 bg-party-navy/70 px-4 text-base text-party-soft outline-none transition focus:border-party-teal focus:ring-2 focus:ring-party-teal/30"
                 >
                   <option value="">Someone new</option>
                   {otherGuests.map((nextGuest) => (
@@ -346,7 +346,7 @@ export default function MissionPage() {
             </div>
 
             <label className="block">
-              <span className="text-sm font-medium text-stone-200">
+              <span className="text-sm font-semibold text-party-soft">
                 Short reflection
               </span>
               <textarea
@@ -354,13 +354,13 @@ export default function MissionPage() {
                 onChange={(event) => setReflection(event.target.value)}
                 rows={3}
                 placeholder="Optional"
-                className="mt-2 w-full rounded-md border border-stone-700 bg-charcoal px-4 py-3 text-base text-champagne outline-none transition placeholder:text-stone-500 focus:border-gold focus:ring-2 focus:ring-gold/30"
+                className="mt-2 w-full rounded-md border border-party-blue/35 bg-party-navy/70 px-4 py-3 text-base text-party-soft outline-none transition placeholder:text-slate-400 focus:border-party-teal focus:ring-2 focus:ring-party-teal/30"
               />
             </label>
 
             <button
               type="button"
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-md border border-gold bg-gold px-6 py-3 text-center text-base font-bold text-obsidian shadow-gold transition hover:bg-champagne focus:outline-none focus:ring-2 focus:ring-champagne focus:ring-offset-2 focus:ring-offset-obsidian"
+              className={primaryActionClassName}
               onClick={handleConnectionComplete}
             >
               I Made This Connection
@@ -383,7 +383,7 @@ export default function MissionPage() {
           </div>
 
           {connectionMessage ? (
-            <p className="mt-4 rounded-md border border-gold/30 bg-black/50 p-3 text-sm font-semibold text-champagne">
+            <p className="pn-success-state mt-4">
               {connectionMessage}
             </p>
           ) : null}
@@ -432,9 +432,9 @@ function ConnectionStat({
   value
 }: Readonly<{ label: string; value: string }>) {
   return (
-    <div className="rounded-md border border-stone-800 bg-stone-950/70 p-3">
-      <p className="text-xs uppercase text-stone-400">{label}</p>
-      <p className="mt-1 text-3xl font-black text-gold">{value}</p>
+    <div className="pn-stat-card p-3">
+      <p className="text-xs font-bold uppercase text-slate-300">{label}</p>
+      <p className="mt-1 text-3xl font-black text-party-teal">{value}</p>
     </div>
   );
 }

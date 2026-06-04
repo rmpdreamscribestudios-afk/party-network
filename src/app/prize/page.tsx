@@ -67,20 +67,20 @@ export default function PrizePage() {
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-5 py-8 text-center">
       <div className="premium-orbit opacity-40" />
       <section className="relative z-10 w-full max-w-4xl">
-        <p className="text-lg font-bold uppercase text-gold">Prize Reveal</p>
-        <h1 className="mt-4 text-5xl font-black text-champagne md:text-8xl">
+        <p className="text-lg font-bold uppercase text-party-teal">Prize Reveal</p>
+        <h1 className="mt-4 text-5xl font-black text-party-soft md:text-8xl">
           {prize.setup}
         </h1>
-        <div className="mx-auto mt-10 min-h-64 rounded-md border border-gold/40 bg-black/50 p-8 shadow-gold">
+        <div className="pn-celebration-state mx-auto mt-10 min-h-64 p-8">
           {revealed ? (
             <>
-              <p className="text-xl uppercase text-stone-300">Actually...</p>
-              <p className="mt-4 text-6xl font-black text-gold md:text-9xl">
+              <p className="text-xl font-bold uppercase text-slate-200">Actually...</p>
+              <p className="mt-4 text-6xl font-black text-party-gold md:text-9xl">
                 {prize.reveal}
               </p>
             </>
           ) : (
-            <p className="pt-16 text-4xl font-black text-stone-300 md:text-7xl">
+            <p className="pt-16 text-4xl font-black text-slate-200 md:text-7xl">
               TAP TO REVEAL
             </p>
           )}

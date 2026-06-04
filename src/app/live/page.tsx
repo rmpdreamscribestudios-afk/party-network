@@ -140,21 +140,21 @@ export default function LivePage() {
       <section className="relative z-10 flex w-full flex-col justify-between">
         <header className="flex items-start justify-between gap-6">
           <div>
-            <p className="text-xl font-bold uppercase text-gold">
+            <p className="text-xl font-bold uppercase text-party-teal">
               Live Experience Feed
             </p>
-            <h1 className="mt-2 text-6xl font-black text-champagne md:text-8xl">
+            <h1 className="mt-2 text-6xl font-black text-party-soft md:text-8xl">
               {settings.title}
             </h1>
             {settings.subtitle ? (
-              <p className="mt-3 max-w-3xl text-2xl text-stone-300">
+              <p className="mt-3 max-w-3xl text-2xl text-slate-200">
                 {settings.subtitle}
               </p>
             ) : null}
           </div>
           <Link
             href="/host"
-            className="rounded-md border border-gold/40 px-5 py-3 text-lg font-bold text-champagne"
+            className="rounded-md border border-party-blue/50 bg-white/[0.04] px-5 py-3 text-lg font-bold text-party-soft"
           >
             Host
           </Link>
@@ -162,14 +162,14 @@ export default function LivePage() {
 
         <div className="relative my-10 min-h-[44vh]">
           {statusMessage ? (
-            <p className="rounded-md border border-gold/30 bg-black/55 p-8 text-center text-3xl font-bold text-champagne">
+            <p className="pn-loading-state p-8 text-center text-3xl">
               {statusMessage}
             </p>
           ) : null}
           {displayGuests.slice(0, 18).map((guest, index) => (
             <span
               key={`${guest.id}-${index}`}
-              className="floating-name absolute rounded-md border border-gold/30 bg-black/40 px-5 py-3 text-2xl font-black text-champagne shadow-gold backdrop-blur md:text-5xl"
+              className="floating-name absolute rounded-md border border-party-teal/35 bg-party-navy/62 px-5 py-3 text-2xl font-black text-party-soft shadow-celebration backdrop-blur md:text-5xl"
               style={{
                 top: `${(index * 17) % 78}%`,
                 left: `${(index * 23) % 70}%`,
@@ -181,64 +181,64 @@ export default function LivePage() {
           ))}
         </div>
 
-        <footer className="grid gap-4 border-t border-gold/20 pt-6 md:grid-cols-[1fr_auto] md:items-end">
+        <footer className="grid gap-4 border-t border-party-teal/25 pt-6 md:grid-cols-[1fr_auto] md:items-end">
           <div className="grid gap-4 md:grid-cols-5">
             <div>
-              <p className="text-3xl font-black text-gold md:text-6xl">
+              <p className="text-3xl font-black text-party-teal md:text-6xl">
                 {connectionStats.connectionsCreated.toString().padStart(2, "0")}
               </p>
-              <p className="text-xl text-stone-300">Total connections made</p>
+              <p className="text-xl text-slate-200">Total connections made</p>
             </div>
             <div>
-              <p className="text-3xl font-black text-gold md:text-6xl">
+              <p className="text-3xl font-black text-party-green md:text-6xl">
                 {connectionStats.activeParticipants.toString().padStart(2, "0")}
               </p>
-              <p className="text-xl text-stone-300">Active participants</p>
+              <p className="text-xl text-slate-200">Active participants</p>
             </div>
             <div>
-              <p className="text-3xl font-black text-gold md:text-6xl">
+              <p className="text-3xl font-black text-party-blue md:text-6xl">
                 {connectionStats.missionsCompleted.toString().padStart(2, "0")}
               </p>
-              <p className="text-xl text-stone-300">Completed missions</p>
+              <p className="text-xl text-slate-200">Completed missions</p>
             </div>
             <div>
-              <p className="break-words text-3xl font-black text-gold md:text-5xl">
+              <p className="break-words text-3xl font-black text-party-gold md:text-5xl">
                 {winnerName}
               </p>
-              <p className="text-xl text-stone-300">Current winner</p>
+              <p className="text-xl text-slate-200">Current winner</p>
             </div>
             <div>
-              <p className="break-words text-3xl font-black text-gold md:text-5xl">
+              <p className="break-words text-3xl font-black text-party-gold md:text-5xl">
                 {prizeName}
               </p>
-              <p className="text-xl text-stone-300">Prize board</p>
+              <p className="text-xl text-slate-200">Prize board</p>
             </div>
           </div>
-          <div className="rounded-md border border-gold/30 bg-black/40 p-5 text-right backdrop-blur">
-            <p className="text-lg font-bold uppercase text-gold">
+          <div className="pn-dashboard-card text-right">
+            <p className="text-lg font-bold uppercase text-party-teal">
               {missionStats.round ? "Mission Round Live" : "Mission Round"}
             </p>
-            <p className="countdown-pulse mt-2 text-4xl font-black text-champagne md:text-7xl">
+            <p className="countdown-pulse mt-2 text-4xl font-black text-party-soft md:text-7xl">
               {missionStats.round ? missionTimeLeft : "READY"}
             </p>
             <div className="mt-3 grid grid-cols-3 gap-3 text-center">
               <div>
-                <p className="text-2xl font-black text-gold">
+                <p className="text-2xl font-black text-party-gold">
                   {missionStats.assigned}
                 </p>
-                <p className="text-sm text-stone-300">Assigned</p>
+                <p className="text-sm text-slate-200">Assigned</p>
               </div>
               <div>
-                <p className="text-2xl font-black text-gold">
+                <p className="text-2xl font-black text-party-gold">
                   {missionStats.completed}
                 </p>
-                <p className="text-sm text-stone-300">Done</p>
+                <p className="text-sm text-slate-200">Done</p>
               </div>
               <div>
-                <p className="text-2xl font-black text-gold">
+                <p className="text-2xl font-black text-party-gold">
                   {missionStats.completionPercentage}%
                 </p>
-                <p className="text-sm text-stone-300">Complete</p>
+                <p className="text-sm text-slate-200">Complete</p>
               </div>
             </div>
           </div>

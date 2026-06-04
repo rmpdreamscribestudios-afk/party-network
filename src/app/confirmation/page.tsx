@@ -48,17 +48,17 @@ export default function ConfirmationPage() {
       title={settings.title}
       subtitle={settings.subtitle}
     >
-      <div className="rounded-md border border-gold/40 bg-black/50 p-6 shadow-gold backdrop-blur">
-        <p className="text-lg font-semibold text-champagne">
+      <div className="pn-celebration-state">
+        <p className="text-lg font-semibold text-party-soft">
           {guest?.name ?? "Guest"}
         </p>
-        <p className="mt-5 text-sm font-medium uppercase tracking-normal text-stone-300">
+        <p className="mt-5 text-sm font-bold uppercase tracking-normal text-slate-200">
           Luck Score
         </p>
-        <p className="mt-2 text-7xl font-black text-gold">
+        <p className="mt-2 text-7xl font-black text-party-gold">
           {guest?.luckScore ?? "--"}
         </p>
-        <p className="mt-4 text-base leading-7 text-stone-200">
+        <p className="mt-4 text-base leading-7 text-slate-100">
           {message}
         </p>
       </div>

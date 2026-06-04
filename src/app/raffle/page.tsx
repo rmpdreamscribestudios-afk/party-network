@@ -84,49 +84,49 @@ export default function RafflePage() {
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-5 py-8 text-center">
       <div className="premium-orbit" />
       <section className="relative z-10 w-full max-w-5xl">
-        <p className="text-lg font-bold uppercase text-gold">Live Draw</p>
-        <p className="mt-2 text-2xl font-bold text-champagne">{settings.title}</p>
-        <h1 className="mt-3 text-5xl font-black text-champagne sm:text-7xl md:text-8xl">
+        <p className="text-lg font-bold uppercase text-party-teal">Live Draw</p>
+        <p className="mt-2 text-2xl font-bold text-party-soft">{settings.title}</p>
+        <h1 className="mt-3 text-5xl font-black text-party-soft sm:text-7xl md:text-8xl">
           THE NETWORK HAS CHOSEN
         </h1>
         <div className="mx-auto mt-6 grid max-w-3xl gap-3 text-left sm:grid-cols-3">
-          <div className="rounded-md border border-gold/25 bg-black/45 p-4">
-            <p className="text-xs uppercase text-stone-400">Entries</p>
-            <p className="mt-1 text-3xl font-black text-gold">{guests.length}</p>
+          <div className="pn-stat-card p-4">
+            <p className="text-xs font-bold uppercase text-slate-300">Entries</p>
+            <p className="mt-1 text-3xl font-black text-party-teal">{guests.length}</p>
           </div>
-          <div className="rounded-md border border-gold/25 bg-black/45 p-4">
-            <p className="text-xs uppercase text-stone-400">Last Winner</p>
-            <p className="mt-1 text-2xl font-black text-champagne">
+          <div className="pn-stat-card p-4">
+            <p className="text-xs font-bold uppercase text-slate-300">Last Winner</p>
+            <p className="mt-1 text-2xl font-black text-party-soft">
               {winner?.name ?? "Pending"}
             </p>
           </div>
-          <div className="rounded-md border border-gold/25 bg-black/45 p-4">
-            <p className="text-xs uppercase text-stone-400">Prize</p>
-            <p className="mt-1 text-2xl font-black text-champagne">
+          <div className="pn-stat-card p-4">
+            <p className="text-xs font-bold uppercase text-slate-300">Prize</p>
+            <p className="mt-1 text-2xl font-black text-party-soft">
               {prizeName}
             </p>
           </div>
         </div>
 
-        <div className="mx-auto mt-10 flex min-h-72 max-w-3xl items-center justify-center rounded-md border border-gold/40 bg-black/55 p-6 shadow-gold backdrop-blur">
+        <div className="pn-celebration-state mx-auto mt-10 flex min-h-72 max-w-3xl items-center justify-center p-6">
           {statusMessage ? (
-            <p className="text-2xl font-bold text-champagne">{statusMessage}</p>
+            <p className="text-2xl font-bold text-party-soft">{statusMessage}</p>
           ) : isDrawing ? (
-            <p className="winner-flicker text-5xl font-black text-gold md:text-8xl">
+            <p className="winner-flicker text-5xl font-black text-party-gold md:text-8xl">
               SCANNING...
             </p>
           ) : winner ? (
             <div>
-              <p className="text-xl uppercase text-stone-300">Winner</p>
-              <p className="mt-3 text-6xl font-black text-gold md:text-9xl">
+              <p className="text-xl font-bold uppercase text-slate-200">Winner</p>
+              <p className="mt-3 text-6xl font-black text-party-gold md:text-9xl">
                 {winner.name}
               </p>
-              <p className="mt-5 text-2xl text-champagne">
+              <p className="mt-5 text-2xl text-party-soft">
                 Luck Score: {winner.luckScore}
               </p>
             </div>
           ) : (
-            <p className="text-3xl font-bold text-stone-300">
+            <p className="text-3xl font-bold text-slate-200">
               {guests.length
                 ? `${guests.length} guests are in the draw.`
                 : "Add guests from the host dashboard first."}
