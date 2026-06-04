@@ -32,7 +32,7 @@ export default function HostLoginPage() {
   return (
     <ExperienceShell
       eyebrow="Host Access"
-      title="Party Network"
+      title="Host Dashboard"
       subtitle="Open the dashboard for shared participation, live moments, and event memories."
       align="left"
     >
