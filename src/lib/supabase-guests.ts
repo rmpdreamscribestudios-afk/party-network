@@ -228,26 +228,34 @@ export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
     luck_score: guest.luckScore
   };
 
-  const profileResult = await insertGuestRow(payload, profileGuestSelect);
+  const {
+    data: primaryData,
+    error: primaryError
+  } = await insertGuestRow(payload, profileGuestSelect);
 
-  if (profileResult.error) {
+  if (primaryError) {
     const fallbackPayload: GuestInsert = {
       name: guest.name,
       funny_answer: guest.answer ?? null,
       luck_score: guest.luckScore
     };
-    const baseResult = await insertGuestRow(fallbackPayload, baseGuestSelect);
+    const {
+      data: fallbackData,
+      error: fallbackError
+    } = await insertGuestRow(fallbackPayload, baseGuestSelect);
 
-    if (baseResult.error) {
-      throw baseResult.error;
+    if (fallbackError) {
+      throw fallbackError;
     }
 
-    if (!baseResult.data) {
+    const fallbackRow: GuestRow | null = toGuestRow(fallbackData);
+
+    if (!fallbackRow) {
       throw new Error("Supabase guest insert returned an invalid guest row.");
     }
 
     const insertedGuest = {
-      ...mapGuest(baseResult.data),
+      ...mapGuest(fallbackRow),
       firstName: guest.firstName,
       interests: guest.interests,
       favoriteHobby: guest.favoriteHobby,
@@ -258,12 +266,14 @@ export async function insertGuest(guest: PartyGuest): Promise<PartyGuest> {
     return insertedGuest;
   }
 
-  if (!profileResult.data) {
+  const primaryRow: GuestRow | null = toGuestRow(primaryData);
+
+  if (!primaryRow) {
     throw new Error("Supabase guest insert returned an invalid guest row.");
   }
 
   const insertedGuest = {
-    ...mapGuest(profileResult.data),
+    ...mapGuest(primaryRow),
     firstName: guest.firstName,
     interests: guest.interests,
     favoriteHobby: guest.favoriteHobby,
